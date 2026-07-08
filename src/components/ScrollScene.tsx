@@ -280,7 +280,7 @@ export default function ScrollScene({
           }}
         />
 
-        <div className="absolute right-4 sm:right-8 md:right-16 lg:right-28 top-12 sm:top-16 md:top-20 lg:top-28 xl:top-36 z-10 w-full max-w-[75vw] sm:max-w-sm md:max-w-xl lg:max-w-3xl pointer-events-none">
+        <div className="absolute right-4 sm:right-8 md:right-16 lg:right-28 top-48 sm:top-16 md:top-20 lg:top-28 xl:top-36 z-10 w-full max-w-[75vw] sm:max-w-sm md:max-w-xl lg:max-w-3xl pointer-events-none">
           {lastOverlay && (
             <div style={{ textAlign: 'right', direction: isRtl ? 'rtl' : 'ltr' }}>
               <span className="text-teal-600 text-xs sm:text-sm md:text-base lg:text-lg font-bold uppercase tracking-widest block mb-2 sm:mb-3 font-cairo">
@@ -344,7 +344,7 @@ export default function ScrollScene({
           }}
         />
 
-        <div className="absolute right-4 sm:right-8 md:right-16 lg:right-28 top-12 sm:top-16 md:top-20 lg:top-28 xl:top-36 z-10 w-full max-w-[75vw] sm:max-w-sm md:max-w-xl lg:max-w-3xl pointer-events-none">
+        <div className="absolute right-4 sm:right-8 md:right-16 lg:right-28 top-48 sm:top-16 md:top-20 lg:top-28 xl:top-36 z-10 w-full max-w-[75vw] sm:max-w-sm md:max-w-xl lg:max-w-3xl pointer-events-none">
           {overlays.map((overlay, index) => (
             <div
               key={index}
