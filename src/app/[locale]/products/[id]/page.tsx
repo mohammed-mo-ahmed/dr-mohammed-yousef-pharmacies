@@ -206,7 +206,7 @@ export default function ProductDetailPage() {
                 {/* Add to cart button */}
                 <button
                   onClick={handleAddToCart}
-                  className="flex-grow flex items-center justify-center gap-2 px-6 py-4.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-md shadow-teal-100 hover:shadow-lg transition-all font-cairo"
+                  className="flex-grow flex items-center justify-center gap-2 px-6 py-[18px] bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-md shadow-teal-100 hover:shadow-lg transition-all font-cairo"
                 >
                   <ShoppingBag size={20} />
                   <span>{t('common.addToCart')}</span>
@@ -241,7 +241,7 @@ export default function ProductDetailPage() {
       {relatedProducts.length > 0 && (
         <section className="mb-12">
           <div className="mb-6 flex">
-            <h2 className="text-2xl font-extrabold text-slate-900 font-cairo">
+            <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 font-cairo">
               {t('products.related')}
             </h2>
           </div>

@@ -105,7 +105,7 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
       
       {/* Page Title */}
       <div className={`mb-8 ${isRtl ? 'text-right' : 'text-left'}`}>
-        <h1 className="text-3xl font-extrabold text-slate-900 font-cairo">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
           {t('products.title')}
         </h1>
         <p className="text-slate-500 text-sm mt-2 font-cairo">

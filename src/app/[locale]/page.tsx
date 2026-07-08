@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import ScrollScene, { ScrollOverlay } from '@/components/ScrollScene';
 import { getCategories, getProducts, getOffers } from '@/lib/api';
 import { Product, Category, Offer } from '@/types';
@@ -59,7 +59,7 @@ export default function HomePage() {
 
   const heroOverlays: ScrollOverlay[] = [
     {
-      startPercentage: 8,
+      startPercentage: 0,
       endPercentage: 35,
       titleAr: 'جودة طبية ورعاية نثق بها',
       titleEn: 'Trusted Healthcare Quality',
@@ -104,6 +104,51 @@ export default function HomePage() {
           locale={locale}
           navbarHeight={80}
         />
+      </section>
+
+      {/* Content that follows the hero naturally */}
+      <div>
+
+      {/* WAVE DIVIDER */}
+      <div className="-mt-1">
+        <svg
+          viewBox="0 0 1440 120"
+          preserveAspectRatio="none"
+          className="w-full h-16 md:h-24 lg:h-32 block"
+          style={{ transform: 'scaleY(-1)' }}
+        >
+          <path
+            d="M0,60 C360,120 540,0 720,60 C900,120 1080,0 1440,60 L1440,120 L0,120 Z"
+            fill="#f8fafc"
+          />
+          <path
+            d="M0,60 C360,120 540,0 720,60 C900,120 1080,0 1440,60 L1440,120 L0,120 Z"
+            fill="none"
+            stroke="#e2e8f0"
+            strokeWidth="1"
+            opacity="0.5"
+          />
+        </svg>
+      </div>
+
+      {/* TRANSITION SECTION */}
+      <section className="bg-slate-50 py-12 md:py-16 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-teal-50 border border-teal-100 rounded-full text-teal-700 text-xs font-bold uppercase tracking-wider mb-5 font-cairo">
+            <span className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-pulse"></span>
+            {isRtl ? 'مرحباً بكم في صيدلياتنا' : 'Welcome to Our Pharmacies'}
+          </div>
+          <h2 className="text-2xl md:text-4xl font-extrabold text-slate-900 leading-tight font-cairo mb-4">
+            {isRtl
+              ? 'رعايتكم الصحية هي أولويتنا الأولى'
+              : 'Your Health & Wellness is Our Priority'}
+          </h2>
+          <p className="text-slate-500 text-sm md:text-base leading-relaxed max-w-2xl mx-auto font-cairo">
+            {isRtl
+              ? 'نحن نقدم مجموعة متكاملة من الخدمات الصيدلانية والمنتجات الطبية والتجميلية بأعلى معايير الجودة والعناية.'
+              : 'We offer a complete range of pharmaceutical services, medical products, and cosmetics with the highest standards of quality and care.'}
+          </p>
+        </div>
       </section>
 
       {/* FEATURES */}
@@ -202,12 +247,12 @@ export default function HomePage() {
                   ? 'لم يتم العثور على منتجات أو فئات في قاعدة البيانات. يرجى الدخول إلى لوحة تحكم المدير والنقر على "تهيئة قاعدة البيانات" لملئها بمنتجات تجريبية.'
                   : 'No categories or products were found. Please go to the Admin Dashboard and click "Seed Database" to fill it with realistic starter products.'}
               </p>
-              <button
-                onClick={() => router.push('/admin')}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold font-cairo transition-all"
+              <Link
+                href="/login"
+                className="inline-block px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold font-cairo transition-all"
               >
-                {isRtl ? 'الذهاب للوحة التحكم' : 'Go to Admin Dashboard'}
-              </button>
+                {isRtl ? 'تسجيل الدخول' : 'Login'}
+              </Link>
             </div>
           </div>
         </section>
@@ -217,7 +262,7 @@ export default function HomePage() {
       {categories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-extrabold text-slate-900 font-cairo tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-cairo tracking-tight">
               {t('categories.title')}
             </h2>
             <p className="text-slate-500 text-sm mt-2 font-cairo">
@@ -304,6 +349,8 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      </div>
     </div>
   );
 }

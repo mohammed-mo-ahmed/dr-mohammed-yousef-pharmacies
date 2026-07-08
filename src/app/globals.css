@@ -39,10 +39,16 @@
   
   --font-cairo: var(--font-cairo), system-ui, sans-serif;
   --font-outfit: var(--font-outfit), system-ui, sans-serif;
+
+  --color-slate-550: #6e7a8a;
+  --color-slate-650: #4a5a6e;
+  --color-slate-750: #35455a;
+  --color-slate-850: #1f3045;
+  --color-emerald-250: #8aedc3;
+  --color-amber-55: #fff9e0;
 }
 
 html {
-  scroll-behavior: smooth;
   overflow-x: hidden;
 }
 

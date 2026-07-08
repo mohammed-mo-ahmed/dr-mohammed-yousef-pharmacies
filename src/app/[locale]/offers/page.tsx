@@ -96,7 +96,7 @@ export default function OffersPage() {
                     <Calendar size={14} className="text-teal-600" />
                     <span>{isRtl ? 'عرض لفترة محدودة' : 'Limited Time Offer'}</span>
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-800 mb-4 leading-snug">
+                  <h3 className="text-lg md:text-xl font-extrabold text-slate-800 mb-4 leading-snug">
                     {isRtl ? offer.title_ar : offer.title_en}
                   </h3>
                 </div>

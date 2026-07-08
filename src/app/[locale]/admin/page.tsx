@@ -469,11 +469,11 @@ export default function AdminDashboardPage() {
       </aside>
 
       {/* MAIN VIEW AREA */}
-      <main className="flex-grow p-6 md:p-10 max-h-screen overflow-y-auto">
+      <main className="flex-grow p-6 md:p-10 overflow-y-auto">
         {/* Sync / Seed bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-800">
+            <h2 className="text-xl md:text-2xl font-extrabold text-slate-800">
               {activeTab === 'dashboard' && t('title')}
               {activeTab === 'products' && t('nav.products')}
               {activeTab === 'categories' && t('nav.categories')}
@@ -1004,7 +1004,7 @@ export default function AdminDashboardPage() {
           ========================================== */}
       {activeModal === 'product' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl relative">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto p-6 md:p-8 shadow-2xl relative">
             <button
               onClick={() => setActiveModal(null)}
               className="absolute top-4 left-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all cursor-pointer"

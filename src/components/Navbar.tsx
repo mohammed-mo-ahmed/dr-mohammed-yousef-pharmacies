@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { useCart } from '@/context/CartContext';
-import { ShoppingCart, Menu, X, Globe, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Menu, X, Globe, UserPlus } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Navbar() {
@@ -71,13 +71,13 @@ export default function Navbar() {
 
         {/* CONTROLS (Cart, Language Switcher, Admin/Login) */}
         <div className="hidden lg:flex items-center gap-4">
-          {/* Admin Dashboard */}
+          {/* Register Now */}
           <Link
-            href="/admin"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-teal-700 rounded-lg text-sm font-medium border border-slate-200 transition-colors"
+            href="/login"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-semibold border border-teal-600 transition-colors shadow-sm"
           >
-            <ShieldCheck size={16} className="text-teal-600" />
-            <span>{t('admin')}</span>
+            <UserPlus size={16} />
+            <span>{t('registerNow')}</span>
           </Link>
 
           {/* Cart Icon */}
@@ -156,12 +156,12 @@ export default function Navbar() {
 
             <div className="pt-6 flex flex-col gap-3">
               <Link
-                href="/admin"
+                href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold border border-teal-600 text-center transition-colors shadow-sm"
               >
-                <ShieldCheck size={18} className="text-teal-600" />
-                <span>{t('admin')}</span>
+                <UserPlus size={18} />
+                <span>{t('registerNow')}</span>
               </Link>
             </div>
           </div>

@@ -110,7 +110,7 @@ export default function CheckoutPage() {
       
       {/* Title */}
       <div className={`mb-8 ${isRtl ? 'text-right' : 'text-left'}`}>
-        <h1 className="text-3xl font-extrabold text-slate-900">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
           {t('checkout.title')}
         </h1>
       </div>
@@ -270,7 +270,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4.5 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-extrabold text-base shadow-md shadow-teal-100 hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full py-[18px] bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-extrabold text-base shadow-md shadow-teal-100 hover:shadow-lg transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-teal-200 border-t-white rounded-full animate-spin"></div>

@@ -25,7 +25,7 @@ export default function CartPage() {
       
       {/* Title */}
       <div className={`mb-8 ${isRtl ? 'text-right' : 'text-left'}`}>
-        <h1 className="text-3xl font-extrabold text-slate-900 font-cairo">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
           {t('cart.title')}
         </h1>
       </div>
