@@ -1,0 +1,142 @@
+{
+  "common": {
+    "title": "Dr. Mohammed Yousef Pharmacies",
+    "search": "Search...",
+    "searchPlaceholder": "Search for a product, medicine, or cosmetics...",
+    "cart": "Shopping Cart",
+    "login": "Login",
+    "logout": "Logout",
+    "admin": "Admin Dashboard",
+    "home": "Home",
+    "products": "Products",
+    "about": "About Us",
+    "contact": "Contact Us",
+    "offers": "Offers",
+    "faq": "FAQ",
+    "currency": "EGP",
+    "addToCart": "Add to Cart",
+    "loading": "Loading...",
+    "noProducts": "No products match your search.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "actions": "Actions",
+    "price": "Price",
+    "name": "Name",
+    "quantity": "Quantity"
+  },
+  "hero": {
+    "title": "Healthcare You Can Trust",
+    "subtitle": "Dr. Mohammed Yousef Pharmacies provide you and your family with all medications, cosmetics, and wellness products with top quality and fast delivery.",
+    "cta": "Browse Products",
+    "scroll": "Scroll down to explore our world"
+  },
+  "categories": {
+    "title": "Shop by Category",
+    "medicines": "Medicines & Rx",
+    "cosmetics": "Cosmetics & Skin Care",
+    "babyCare": "Baby Care",
+    "wellness": "Wellness & Vitamins",
+    "personalCare": "Personal Care"
+  },
+  "products": {
+    "title": "Our Products",
+    "filter": "Filter Products",
+    "sort": "Sort by",
+    "sortByPriceAsc": "Price: Low to High",
+    "sortByPriceDesc": "Price: High to Low",
+    "sortByName": "Name: A - Z",
+    "all": "All Products",
+    "details": "Product Details",
+    "usage": "Usage Instructions",
+    "qty": "Quantity",
+    "related": "Related Products"
+  },
+  "cart": {
+    "title": "Your Shopping Cart",
+    "empty": "Your cart is currently empty.",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove"
+  },
+  "checkout": {
+    "title": "Complete Order",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "address": "Detailed Address",
+    "notes": "Additional Notes",
+    "deliveryMethod": "Delivery Method",
+    "homeDelivery": "Home Delivery",
+    "pharmacyPickup": "Pharmacy Pickup",
+    "submit": "Confirm Order",
+    "success": "Your order has been placed successfully! We will contact you soon.",
+    "validation": {
+      "name": "Please enter your full name",
+      "phone": "Please enter your phone number",
+      "address": "Please enter your detailed address"
+    }
+  },
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "nav": {
+      "home": "Dashboard",
+      "products": "Products Management",
+      "categories": "Categories Management",
+      "orders": "Orders Management",
+      "customers": "Customers Management",
+      "inventory": "Inventory",
+      "offers": "Offers Management"
+    },
+    "stats": {
+      "totalOrders": "Total Orders",
+      "totalSales": "Total Sales",
+      "activeCustomers": "Active Customers",
+      "lowStock": "Low Stock Products"
+    },
+    "products": {
+      "add": "Add New Product",
+      "edit": "Edit Product",
+      "deleteConfirm": "Are you sure you want to delete this product?",
+      "fields": {
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "price": "Price (EGP)",
+        "stock": "Quantity in Stock",
+        "category": "Category",
+        "image": "Image URL",
+        "descAr": "Description (Arabic)",
+        "descEn": "Description (English)",
+        "usageAr": "Usage Instructions (Arabic)",
+        "usageEn": "Usage Instructions (English)"
+      }
+    },
+    "orders": {
+      "status": "Order Status",
+      "statusPending": "Pending",
+      "statusShipped": "Shipped",
+      "statusDelivered": "Delivered",
+      "statusCancelled": "Cancelled",
+      "customer": "Customer",
+      "date": "Date",
+      "items": "Items"
+    }
+  },
+  "about": {
+    "title": "About Our Pharmacies",
+    "text": "Dr. Mohammed Yousef Pharmacies was founded to deliver outstanding medical and pharmaceutical services based on trust and quality. We continuously strive to meet all our customers' health and wellness needs while offering professional medical advice."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "hours": "Working Hours",
+    "hoursValue": "24 Hours Daily",
+    "location": "Our Location on Map"
+  },
+  "offersBanner": {
+    "badge": "Special Offers",
+    "text": "Get up to 30% off on Skin and Hair Care products!",
+    "cta": "Shop Now"
+  }
+}
