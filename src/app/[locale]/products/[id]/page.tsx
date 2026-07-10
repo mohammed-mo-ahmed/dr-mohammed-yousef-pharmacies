@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, Link } from '@/i18n/routing';
+import ProductCard from '@/components/ProductCard';
 import { getProductById, getProducts } from '@/lib/api';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -248,13 +249,13 @@ export default function ProductDetailPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {relatedProducts.map((prod) => (
-              <RelatedProductCard
+              <ProductCard
                 key={prod.id}
                 product={prod}
                 isRtl={isRtl}
                 t={t}
                 onAddToCart={addToCart}
-                router={router}
+                variant="compact"
               />
             ))}
           </div>
@@ -265,71 +266,4 @@ export default function ProductDetailPage() {
   );
 }
 
-// Internal Related Card component
-function RelatedProductCard({
-  product,
-  isRtl,
-  t,
-  onAddToCart,
-  router,
-}: {
-  product: Product;
-  isRtl: boolean;
-  t: (key: string) => string;
-  onAddToCart: (p: Product) => void;
-  router: { push: (url: string) => void };
-}) {
-  const [imgErr, setImgErr] = useState(false);
 
-  return (
-    <div className="group bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col justify-between">
-      
-      {/* Image container */}
-      <div
-        className="w-full aspect-square relative bg-slate-50 cursor-pointer overflow-hidden"
-        onClick={() => router.push(`/products/${product.id}`)}
-      >
-        <Image
-          src={imgErr || !product.image_url ? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60' : product.image_url}
-          alt={isRtl ? product.name_ar : product.name_en}
-          fill
-          sizes="(max-width: 768px) 50vw, 25vw"
-          className="object-contain p-3 group-hover:scale-105 transition-transform duration-300"
-          onError={() => setImgErr(true)}
-        />
-      </div>
-
-      {/* Content */}
-      <div className="p-3.5 flex-grow flex flex-col justify-between">
-        <div>
-          {/* Title */}
-          <h3
-            onClick={() => router.push(`/products/${product.id}`)}
-            className="font-bold text-slate-800 text-xs md:text-sm mb-2 font-cairo line-clamp-2 hover:text-teal-600 cursor-pointer transition-colors leading-snug"
-          >
-            {isRtl ? product.name_ar : product.name_en}
-          </h3>
-        </div>
-
-        {/* Pricing & Cart Action */}
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 font-cairo">{t('common.price')}</span>
-            <span className="text-sm font-extrabold text-teal-600 font-sans">
-              {product.price.toFixed(2)} <span className="text-[10px] font-bold font-cairo">{t('common.currency')}</span>
-            </span>
-          </div>
-
-          <button
-            onClick={() => onAddToCart(product)}
-            className="p-2 bg-teal-50 hover:bg-teal-600 text-teal-600 hover:text-white rounded-lg transition-all"
-            title={t('common.addToCart')}
-          >
-            <ShoppingBag size={14} />
-          </button>
-        </div>
-      </div>
-
-    </div>
-  );
-}

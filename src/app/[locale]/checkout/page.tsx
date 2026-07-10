@@ -143,9 +143,10 @@ export default function CheckoutPage() {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Home Delivery Card */}
-                <div
+                <button
+                  type="button"
                   onClick={() => setDeliveryMethod('home_delivery')}
-                  className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all ${
+                  className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all w-full text-left ${
                     deliveryMethod === 'home_delivery'
                       ? 'border-teal-500 bg-teal-50/30'
                       : 'border-slate-200 hover:border-slate-300'
@@ -164,12 +165,13 @@ export default function CheckoutPage() {
                       {isRtl ? 'توصيل لباب المنزل خلال ساعات' : 'Express home delivery'}
                     </p>
                   </div>
-                </div>
+                </button>
 
                 {/* Pharmacy Pickup Card */}
-                <div
+                <button
+                  type="button"
                   onClick={() => setDeliveryMethod('pharmacy_pickup')}
-                  className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all ${
+                  className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all w-full text-left ${
                     deliveryMethod === 'pharmacy_pickup'
                       ? 'border-teal-500 bg-teal-50/30'
                       : 'border-slate-200 hover:border-slate-300'
@@ -188,7 +190,7 @@ export default function CheckoutPage() {
                       {isRtl ? 'استلام فوري من فرع الصيدلية' : 'Instant pickup at the branch'}
                     </p>
                   </div>
-                </div>
+                </button>
               </div>
             </div>
 
@@ -200,8 +202,9 @@ export default function CheckoutPage() {
 
               {/* Full Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-500">{t('checkout.fullName')}</label>
+                <label htmlFor="checkout-name" className="text-xs font-semibold text-slate-500">{t('checkout.fullName')}</label>
                 <input
+                  id="checkout-name"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -215,8 +218,9 @@ export default function CheckoutPage() {
 
               {/* Phone Number */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-500">{t('checkout.phone')}</label>
+                <label htmlFor="checkout-phone" className="text-xs font-semibold text-slate-500">{t('checkout.phone')}</label>
                 <input
+                  id="checkout-phone"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -230,8 +234,9 @@ export default function CheckoutPage() {
               {/* Address (conditional on Home Delivery) */}
               {deliveryMethod === 'home_delivery' && (
                 <div className="flex flex-col gap-1.5 animate-fadeIn">
-                  <label className="text-xs font-semibold text-slate-500">{t('checkout.address')}</label>
+                  <label htmlFor="checkout-address" className="text-xs font-semibold text-slate-500">{t('checkout.address')}</label>
                   <textarea
+                    id="checkout-address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     rows={3}
@@ -246,8 +251,9 @@ export default function CheckoutPage() {
 
               {/* Additional Notes */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-500">{t('checkout.notes')}</label>
+                <label htmlFor="checkout-notes" className="text-xs font-semibold text-slate-500">{t('checkout.notes')}</label>
                 <textarea
+                  id="checkout-notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
@@ -327,7 +333,7 @@ export default function CheckoutPage() {
                   <span className="text-xl font-black text-teal-600 font-sans">
                     {cartTotal.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-slate-500 ml-1">
+                  <span className="text-xs font-bold text-slate-500 me-1">
                     {t('common.currency')}
                   </span>
                 </div>

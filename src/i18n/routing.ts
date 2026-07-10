@@ -10,7 +10,7 @@ export const routing = defineRouting({
   
   // Custom prefix option. We can use "as-needed" so that the default locale (Arabic)
   // doesn't have an "/ar" prefix in the URL.
-  localePrefix: 'as-needed'
+  localePrefix: 'always'
 });
 
 // Lightweight wrappers around Next.js' navigation APIs

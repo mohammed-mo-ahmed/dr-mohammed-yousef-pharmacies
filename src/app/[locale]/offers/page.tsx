@@ -70,7 +70,7 @@ export default function OffersPage() {
           {offers.map((offer) => (
             <div
               key={offer.id}
-              className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-350 flex flex-col justify-between"
+              className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
             >
               {/* Offer Banner Image */}
               <div className="w-full h-56 relative bg-slate-100">

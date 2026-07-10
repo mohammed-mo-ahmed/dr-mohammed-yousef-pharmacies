@@ -2,7 +2,8 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { Phone, Mail, Clock, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { Phone, Mail, Clock } from 'lucide-react';
 
 export default function Footer() {
   const t = useTranslations('common');
@@ -21,17 +22,18 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-12">
           
           {/* Logo & Brief */}
           <div className={`flex flex-col ${isRtl ? 'items-start text-right' : 'items-start text-left'}`}>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                Y
-              </span>
-              <span className="font-extrabold text-white text-lg font-cairo">
-                {t('title')}
-              </span>
+            <div className="mb-4">
+              <Image
+                src={isRtl ? '/images/logos/ar.png' : '/images/logos/en.png'}
+                alt="Dr. Mohammed Yousef Pharmacies"
+                width={180}
+                height={48}
+                className="h-10 md:h-12 w-auto brightness-0 invert"
+              />
             </div>
             <p className="text-sm text-slate-400 leading-relaxed font-cairo mb-4">
               {locale === 'ar'
@@ -41,7 +43,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className={`flex flex-col ${isRtl ? 'items-start' : 'items-start'}`}>
+          <div className={`flex flex-col ${'items-start'}`}>
             <h3 className="text-white font-bold text-base mb-4 font-cairo">
               {locale === 'ar' ? 'روابط سريعة' : 'Quick Links'}
             </h3>
@@ -80,26 +82,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* About us CTA / Trust */}
-          <div className="flex flex-col items-start">
-            <h3 className="text-white font-bold text-base mb-4 font-cairo">
-              {locale === 'ar' ? 'الضمان والجودة' : 'Trust & Quality'}
-            </h3>
-            <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 w-full flex items-start gap-3">
-              <ShieldCheck className="text-teal-500 flex-shrink-0 mt-1" size={24} />
-              <div>
-                <h4 className="text-sm font-semibold text-white mb-1 font-cairo">
-                  {locale === 'ar' ? 'أدوية مرخصة وموثوقة' : '100% Certified Medicines'}
-                </h4>
-                <p className="text-xs text-slate-400 leading-relaxed font-cairo">
-                  {locale === 'ar'
-                    ? 'جميع الأدوية مصرحة من وزارة الصحة المصرية ومخزنة تحت درجات حرارة مثالية.'
-                    : 'All medications are approved by the Ministry of Health and stored under optimal conditions.'}
-                </p>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* Bottom bar */}
@@ -107,6 +89,19 @@ export default function Footer() {
           <p className="font-cairo">
             &copy; {new Date().getFullYear()} {t('title')}. {locale === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
           </p>
+          <a
+            href="https://qabnix.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-400 border border-blue-500/20 hover:border-blue-400/40 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)] transition-all duration-300"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            <span>{locale === 'ar' ? 'صنع بواسطة كابنكس' : 'Powered by Qabnix'}</span>
+          </a>
         </div>
       </div>
     </footer>

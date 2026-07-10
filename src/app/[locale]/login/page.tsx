@@ -2,9 +2,10 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Lock, Mail, ShieldAlert, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle } from 'lucide-react';
 
 function LoginForm() {
   const t = useTranslations('common');
@@ -22,7 +23,7 @@ function LoginForm() {
     async function checkUser() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const nextUrl = searchParams?.get('redirect') || '/admin';
+        const nextUrl = searchParams?.get('redirect') || '/';
         router.push(nextUrl);
       }
     }
@@ -49,7 +50,7 @@ function LoginForm() {
             : 'Login failed. Please check your email and password.'
         );
       } else if (data.session) {
-        const nextUrl = searchParams?.get('redirect') || '/admin';
+        const nextUrl = searchParams?.get('redirect') || '/';
         router.push(nextUrl);
       }
     } catch (err) {
@@ -69,12 +70,12 @@ function LoginForm() {
             <Lock size={24} />
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900">
-            {isRtl ? 'تسجيل دخول المشرف' : 'Admin Login'}
+            {isRtl ? 'تسجيل الدخول' : 'Sign In'}
           </h1>
           <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">
             {isRtl
-              ? 'الرجاء إدخال بيانات حساب المشرف الخاص بك للوصول للوحة التحكم'
-              : 'Please enter your administrator credentials to access the dashboard'}
+              ? 'الرجاء إدخال بريدك الإلكتروني وكلمة المرور'
+              : 'Please enter your email and password to continue'}
           </p>
         </div>
 
@@ -94,7 +95,7 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@dr-yousef.com"
+                placeholder="email@example.com"
                 className={`w-full p-3 pl-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-teal-500 transition-colors ${
                   isRtl ? 'text-right pl-3 pr-10' : 'text-left'
                 }`}
@@ -136,15 +137,6 @@ function LoginForm() {
             )}
           </button>
         </form>
-
-        <div className="mt-6 pt-6 border-t border-slate-100 flex items-start gap-2 text-slate-400 text-[10px] md:text-xs leading-relaxed">
-          <ShieldAlert size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-          <p>
-            {isRtl
-              ? 'هذه الصفحة محمية. يرجى تهيئة حساب المشرف الخاص بك في لوحة تحكم Supabase Auth وتفعيله لتسجيل الدخول بنجاح.'
-              : 'This page is secured. Please configure your administrator account in the Supabase Auth panel to sign in.'}
-          </p>
-        </div>
 
       </div>
     </div>

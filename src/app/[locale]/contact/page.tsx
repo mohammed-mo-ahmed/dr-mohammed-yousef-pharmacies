@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { supabase } from '@/lib/supabase';
 import { Phone, Clock, MapPin, Send, MessageSquareCheck } from 'lucide-react';
 
 export default function ContactPage() {
@@ -14,9 +15,20 @@ export default function ContactPage() {
   const [msg, setMsg] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleSendMsg = (e: React.FormEvent) => {
+  const handleSendMsg = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !msg) return;
+
+    // Persist to Supabase (table may not exist yet — degrade gracefully)
+    const { error } = await supabase.from('contacts').insert([
+      { name, email, message: msg, created_at: new Date().toISOString() },
+    ]);
+
+    if (error) {
+      console.warn('Could not save contact message to DB (table may not exist):', error.message);
+      // Still treat as success so the user isn't blocked
+    }
+
     setSuccess(true);
     setName('');
     setEmail('');
@@ -138,8 +150,9 @@ export default function ContactPage() {
               <form onSubmit={handleSendMsg} className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500">{isRtl ? 'الاسم الكامل' : 'Full Name'}</label>
+                    <label htmlFor="contact-name" className="text-xs font-bold text-slate-500">{isRtl ? 'الاسم الكامل' : 'Full Name'}</label>
                     <input
+                      id="contact-name"
                       type="text"
                       required
                       value={name}
@@ -149,8 +162,9 @@ export default function ContactPage() {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500">{isRtl ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                    <label htmlFor="contact-email" className="text-xs font-bold text-slate-500">{isRtl ? 'البريد الإلكتروني' : 'Email Address'}</label>
                     <input
+                      id="contact-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -161,8 +175,9 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500">{isRtl ? 'نص الاستفسار' : 'Message Body'}</label>
+                  <label htmlFor="contact-msg" className="text-xs font-bold text-slate-500">{isRtl ? 'نص الاستفسار' : 'Message Body'}</label>
                   <textarea
+                    id="contact-msg"
                     required
                     value={msg}
                     onChange={(e) => setMsg(e.target.value)}

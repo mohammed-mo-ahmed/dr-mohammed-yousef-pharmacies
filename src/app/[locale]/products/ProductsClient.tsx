@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import ProductCard from '@/components/ProductCard';
 import { getCategories, getProducts } from '@/lib/api';
 import { Product, Category } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -164,7 +165,7 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
             <div className="hidden lg:flex flex-col gap-2">
               <button
                 onClick={() => updateFilters({ category: 'all' })}
-                className={`w-full text-right px-4 py-2.5 rounded-xl text-sm font-semibold transition-all font-cairo ${
+                className={`w-full text-end px-4 py-2.5 rounded-xl text-sm font-semibold transition-all font-cairo ${
                   activeCategory === 'all'
                     ? 'bg-teal-600 text-white shadow-md shadow-teal-100'
                     : 'text-slate-600 hover:bg-slate-50'
@@ -176,7 +177,7 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
                 <button
                   key={cat.id}
                   onClick={() => updateFilters({ category: cat.id })}
-                  className={`w-full text-right px-4 py-2.5 rounded-xl text-sm font-semibold transition-all font-cairo ${
+                  className={`w-full text-end px-4 py-2.5 rounded-xl text-sm font-semibold transition-all font-cairo ${
                     activeCategory === cat.id
                       ? 'bg-teal-600 text-white shadow-md'
                       : 'text-slate-600 hover:bg-slate-50'
@@ -252,13 +253,12 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {products.map((prod) => (
-                <ProductGridCard
+                <ProductCard
                   key={prod.id}
                   product={prod}
                   isRtl={isRtl}
                   t={t}
                   onAddToCart={addToCart}
-                  router={router}
                 />
               ))}
             </div>
@@ -270,83 +270,4 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
   );
 }
 
-// Internal Grid Card component
-interface GridCardProps {
-  product: Product;
-  isRtl: boolean;
-  t: (key: string) => string;
-  onAddToCart: (p: Product) => void;
-  router: { push: (url: string) => void };
-}
 
-function ProductGridCard({ product, isRtl, t, onAddToCart, router }: GridCardProps) {
-  const [imgErr, setImgErr] = useState(false);
-
-  return (
-    <div className="group bg-white rounded-2xl border border-slate-100 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between">
-      {/* Image container */}
-      <div
-        className="w-full aspect-square relative bg-slate-50 cursor-pointer overflow-hidden"
-        onClick={() => router.push(`/products/${product.id}`)}
-      >
-        <Image
-          src={imgErr || !product.image_url ? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60' : product.image_url}
-          alt={isRtl ? product.name_ar : product.name_en}
-          fill
-          sizes="(max-width: 768px) 50vw, 25vw"
-          className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
-          onError={() => setImgErr(true)}
-        />
-
-        {/* Badges */}
-        <div className={`absolute top-3 ${isRtl ? 'right-3' : 'left-3'} flex flex-col gap-1.5`}>
-          {product.is_best_seller && (
-            <span className="px-2.5 py-0.5 bg-rose-500 text-white rounded-full text-[10px] font-extrabold uppercase font-cairo">
-              {isRtl ? 'مميز' : 'Best'}
-            </span>
-          )}
-          {product.is_latest && (
-            <span className="px-2.5 py-0.5 bg-teal-600 text-white rounded-full text-[10px] font-extrabold uppercase font-cairo">
-              {isRtl ? 'جديد' : 'New'}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4 flex-grow flex flex-col justify-between">
-        <div>
-          {/* Category */}
-          <span className="text-[11px] text-teal-600 font-semibold uppercase tracking-wider block mb-1 font-cairo">
-            {product.category ? (isRtl ? product.category.name_ar : product.category.name_en) : ''}
-          </span>
-          {/* Title */}
-          <h3
-            onClick={() => router.push(`/products/${product.id}`)}
-            className="font-bold text-slate-800 text-sm md:text-base mb-2 font-cairo line-clamp-2 hover:text-teal-600 cursor-pointer transition-colors leading-snug"
-          >
-            {isRtl ? product.name_ar : product.name_en}
-          </h3>
-        </div>
-
-        {/* Pricing & Cart Action */}
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-xs text-slate-400 font-cairo">{t('common.price')}</span>
-            <span className="text-base md:text-lg font-extrabold text-teal-600 font-sans">
-              {product.price.toFixed(2)} <span className="text-xs md:text-sm font-bold font-cairo">{t('common.currency')}</span>
-            </span>
-          </div>
-
-          <button
-            onClick={() => onAddToCart(product)}
-            className="p-2.5 bg-teal-50 hover:bg-teal-600 text-teal-600 hover:text-white rounded-xl transition-all shadow-sm"
-            title={t('common.addToCart')}
-          >
-            <ShoppingBag size={18} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}

@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { Cairo, Outfit } from 'next/font/google';
 import { CartProvider } from '@/context/CartContext';
+import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { routing } from '@/i18n/routing';
@@ -20,16 +21,21 @@ const outfit = Outfit({
   variable: '--font-outfit',
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: 'صيدليات د. محمد يوسف | Dr. Mohammed Yousef Pharmacies',
-    template: '%s | صيدليات د. محمد يوسف',
-  },
-  description: 'مجموعة صيدليات د. محمد يوسف لتقديم خدمة طبية ورعاية صحية تثق بها في مصر وتوصيل سريع للأدوية ومستحضرات التجميل.',
-  icons: {
-    icon: '/favicon.ico',
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const isAr = locale === 'ar';
+
+  return {
+    title: {
+      default: isAr ? 'صيدليات د. محمد يوسف' : 'Dr. Mohammed Yousef Pharmacies',
+      template: isAr ? '%s | صيدليات د. محمد يوسف' : '%s | Dr. Mohammed Yousef Pharmacies',
+    },
+    description: isAr
+      ? 'مجموعة صيدليات د. محمد يوسف لتقديم خدمة طبية ورعاية صحية تثق بها في مصر وتوصيل سريع للأدوية ومستحضرات التجميل.'
+      : 'Dr. Mohammed Yousef Pharmacies providing trusted healthcare services and fast delivery of medicines and cosmetics in Egypt.',
+    icons: { icon: '/favicon.ico' },
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -73,6 +79,7 @@ export default async function LocaleLayout({
         } bg-white antialiased`}
       >
         <NextIntlClientProvider messages={messages} locale={locale}>
+          <AuthProvider>
           <CartProvider>
             {/* Navbar is fixed at the top (height 80px / 5rem) */}
             <Navbar />
@@ -85,6 +92,7 @@ export default async function LocaleLayout({
             {/* Footer */}
             <Footer />
           </CartProvider>
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

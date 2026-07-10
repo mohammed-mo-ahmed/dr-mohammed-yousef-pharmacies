@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
+import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart, Menu, X, Globe, UserPlus } from 'lucide-react';
 import Image from 'next/image';
@@ -12,6 +13,7 @@ export default function Navbar() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const { cartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -81,17 +83,20 @@ export default function Navbar() {
           </Link>
 
           {/* Cart Icon */}
-          <Link
-            href="/cart"
-            className="relative p-2 text-slate-700 hover:text-teal-600 transition-colors bg-slate-50 hover:bg-teal-50 rounded-xl border border-slate-100"
-          >
-            <ShoppingCart size={20} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          {isAuthenticated && (
+            <Link
+              href="/cart"
+              aria-label={locale === 'ar' ? 'عربة التسوق' : 'Shopping Cart'}
+              className="relative p-2 text-slate-700 hover:text-teal-600 transition-colors bg-slate-50 hover:bg-teal-50 rounded-xl border border-slate-100"
+            >
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -end-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Language Toggle */}
           <button
@@ -105,20 +110,24 @@ export default function Navbar() {
 
         {/* MOBILE TRIGGER */}
         <div className="flex lg:hidden items-center gap-3">
-          <Link
-            href="/cart"
-            className="relative p-2 text-slate-700 hover:text-teal-600 bg-slate-50 rounded-xl"
-          >
-            <ShoppingCart size={20} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          {isAuthenticated && (
+            <Link
+              href="/cart"
+              aria-label={locale === 'ar' ? 'عربة التسوق' : 'Shopping Cart'}
+              className="relative p-2 text-slate-700 hover:text-teal-600 bg-slate-50 rounded-xl"
+            >
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -end-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           <button
             onClick={switchLocale}
+            aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
             className="p-2 text-slate-700 hover:text-teal-600 bg-slate-50 rounded-xl"
           >
             <Globe size={20} />
@@ -126,6 +135,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? (locale === 'ar' ? 'إغلاق القائمة' : 'Close menu') : (locale === 'ar' ? 'فتح القائمة' : 'Open menu')}
             className="p-2 text-slate-700 hover:text-teal-600 bg-slate-50 rounded-xl"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}

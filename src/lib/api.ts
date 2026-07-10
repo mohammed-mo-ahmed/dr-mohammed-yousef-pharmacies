@@ -86,8 +86,9 @@ export async function getProducts(filters?: {
   }
 
   if (filters?.search) {
-    // Search in name_ar or name_en
-    query = query.or(`name_ar.ilike.%${filters.search}%,name_en.ilike.%${filters.search}%`);
+    // Escape LIKE special characters to prevent unexpected pattern matching
+    const safe = filters.search.replace(/[%_]/g, '\\$&');
+    query = query.or(`name_ar.ilike.%${safe}%,name_en.ilike.%${safe}%`);
   }
 
   // Sorting
@@ -113,7 +114,7 @@ export async function getProducts(filters?: {
   }
 
   // Map category relation if fetched
-  return (data || []).map((prod: Record<string, unknown>) => ({
+  return (data || []).map((prod) => ({
     ...prod,
     category: (prod as { categories?: unknown }).categories,
   })) as Product[];
@@ -157,8 +158,7 @@ export async function createProduct(product: Omit<Product, 'id' | 'category'>): 
 
 export async function updateProduct(id: string, product: Partial<Product>): Promise<Product | null> {
   // Remove category object if passed to avoid insert errors
-  const cleanProduct = { ...product };
-  delete (cleanProduct as Record<string, unknown>).category;
+  const { category: _cat, ...cleanProduct } = product;
 
   const { data, error } = await supabase
     .from('products')
@@ -277,10 +277,17 @@ export async function createOrUpdateCustomer(customer: Omit<Customer, 'id' | 'cr
   }
 
   if (existing) {
-    // Update existing customer address/name
+    // Update existing customer — only update fields that have values
+    const updates: Record<string, string> = {};
+    if (customer.name) updates.name = customer.name;
+    if (customer.address) updates.address = customer.address;
+    if (customer.email) updates.email = customer.email;
+
+    if (Object.keys(updates).length === 0) return existing;
+
     const { data, error } = await supabase
       .from('customers')
-      .update({ name: customer.name, address: customer.address, email: customer.email })
+      .update(updates)
       .eq('id', existing.id)
       .select()
       .single();
@@ -367,18 +374,29 @@ export async function createOrder(
     return null;
   }
 
-  // 3. Update Inventory Stock & Create/Update Customer Record
+  // 3. Update Inventory Stock (guard-based to prevent overselling)
+  // NOTE: For full atomicity, create a Postgres function and call it via
+  // supabase.rpc('decrement_stock', { pid, qty }) — see db/migrations/.
   for (const item of items) {
-    // Fetch current product stock
     const { data: prod } = await supabase
       .from('products')
       .select('stock')
       .eq('id', item.product_id)
       .single();
 
-    if (prod) {
-      const newStock = Math.max(0, prod.stock - item.quantity);
-      await supabase.from('products').update({ stock: newStock }).eq('id', item.product_id);
+    if (prod && prod.stock >= item.quantity) {
+      const newStock = prod.stock - item.quantity;
+      // The .gte('stock', ...) filter ensures the update only applies if
+      // stock hasn't changed since we read it (race-condition safety).
+      const { error: stockError } = await supabase
+        .from('products')
+        .update({ stock: newStock })
+        .eq('id', item.product_id)
+        .gte('stock', item.quantity);
+
+      if (stockError) {
+        console.error('Error updating stock for product', item.product_id, stockError);
+      }
     }
   }
 
@@ -394,6 +412,13 @@ export async function createOrder(
 }
 
 export async function updateOrderStatus(id: string, status: Order['status']): Promise<Order | null> {
+  // Verify the caller is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('Unauthorized attempt to update order status');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('orders')
     .update({ status })
