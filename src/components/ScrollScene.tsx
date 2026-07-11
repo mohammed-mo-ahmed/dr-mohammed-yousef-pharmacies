@@ -1,7 +1,6 @@
 ﻿'use client';
 
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { FrameDecoder } from '@/lib/frame-decoder';
 
 export interface ScrollOverlay {
   startPercentage: number;
@@ -26,9 +25,14 @@ interface ScrollSceneProps {
 }
 
 const SCROLL_DISTANCE_VH = 400;
-const MP4_URL = '/animation.mp4';
-const WEBM_URL = '/animation.webm';
-const HAS_WEBCODECS = typeof VideoDecoder !== 'undefined';
+const TOTAL_FRAMES = 183;
+const STEP = 3;
+const SELECTED_COUNT = Math.ceil(TOTAL_FRAMES / STEP);
+
+function framePath(index: number): string {
+  const num = index * STEP + 1;
+  return `/frames/${String(num).padStart(5, '0')}.webp`;
+}
 
 export default function ScrollScene({
   overlays,
@@ -40,67 +44,129 @@ export default function ScrollScene({
   const overlayRefs = useRef<(HTMLDivElement | null)[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const decoderRef = useRef<FrameDecoder | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [fadingOut, setFadingOut] = useState(false);
 
   const animationFrameRef = useRef<number>(0);
   const progressRef = useRef(0);
+  const imagesRef = useRef<(HTMLImageElement | null)[]>(new Array(SELECTED_COUNT).fill(null));
+  const loadedCountRef = useRef(0);
+  const lastDrawnRef = useRef(-1);
 
   const isRtl = locale === 'ar';
 
-  const drawFirstFrame = useCallback(() => {
-    const canvas = canvasRef.current;
-    const decoder = decoderRef.current;
-    if (!canvas || !decoder?.isReady) return;
+  const drawFrameOnCanvas = useCallback((canvas: HTMLCanvasElement, img: HTMLImageElement) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const rect = canvas.parentElement?.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0) return;
+
     const dpr = window.devicePixelRatio || 1;
-    const w = Math.floor(rect.width * dpr);
-    const h = Math.floor(rect.height * dpr);
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    const bufW = Math.floor(cssW * dpr);
+    const bufH = Math.floor(cssH * dpr);
+
+    if (canvas.width !== bufW || canvas.height !== bufH) {
+      canvas.width = bufW;
+      canvas.height = bufH;
     }
-    decoder.drawFrame(ctx, w, h, 0, isRtl);
+
+    ctx.clearRect(0, 0, bufW, bufH);
+
+    const srcW = img.naturalWidth;
+    const srcH = img.naturalHeight;
+    if (srcW === 0 || srcH === 0) return;
+
+    const srcAspect = srcW / srcH;
+    const dstAspect = bufW / bufH;
+
+    let drawW: number;
+    let drawH: number;
+    let offsetX: number;
+    let offsetY: number;
+
+    if (srcAspect > dstAspect) {
+      drawW = bufW;
+      drawH = bufW / srcAspect;
+      offsetX = 0;
+      offsetY = (bufH - drawH) / 2;
+    } else {
+      drawH = bufH;
+      drawW = bufH * srcAspect;
+      offsetX = isRtl ? 0 : bufW - drawW;
+      offsetY = 0;
+    }
+
+    ctx.drawImage(img, 0, 0, srcW, srcH, offsetX, offsetY, drawW, drawH);
   }, [isRtl]);
 
-  useEffect(() => {
-    if (!HAS_WEBCODECS) {
-      const video = videoRef.current;
-      if (!video) return;
-      let active = true;
-      const onCanPlay = () => { if (active) setFadingOut(true); };
-      const onError = () => { if (active) setFadingOut(true); };
-      video.addEventListener('canplay', onCanPlay);
-      video.addEventListener('error', onError);
-      video.load();
-      return () => { active = false; video.removeEventListener('canplay', onCanPlay); video.removeEventListener('error', onError); };
+  const drawByProgress = useCallback((progress: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const idx = Math.min(
+      SELECTED_COUNT - 1,
+      Math.round(progress * (SELECTED_COUNT - 1)),
+    );
+    if (idx === lastDrawnRef.current) return;
+
+    const img = imagesRef.current[idx];
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      const prev = imagesRef.current.slice(0, idx + 1).reverse().find((i) => i && i.complete && i.naturalWidth > 0);
+      if (prev) drawFrameOnCanvas(canvas, prev);
+      return;
     }
 
-    let active = true;
-    const decoder = new FrameDecoder();
-    decoderRef.current = decoder;
+    lastDrawnRef.current = idx;
+    drawFrameOnCanvas(canvas, img);
+  }, [drawFrameOnCanvas]);
 
-    decoder.init(MP4_URL).then(() => {
+  useEffect(() => {
+    let active = true;
+    const images = imagesRef.current;
+
+    const loadBatch = (indices: number[]): Promise<void[]> =>
+      Promise.all(
+        indices.map(
+          (i) =>
+            new Promise<void>((resolve) => {
+              if (!active || images[i]) { resolve(); return; }
+              const img = new Image();
+              img.decoding = 'async';
+              img.src = framePath(i);
+              img.onload = () => {
+                if (!active) { resolve(); return; }
+                images[i] = img;
+                loadedCountRef.current++;
+                resolve();
+              };
+              img.onerror = () => { resolve(); };
+            }),
+        ),
+      );
+
+    const loadAll = async () => {
+      const initial = Array.from({ length: 10 }, (_, k) => k);
+      await loadBatch(initial);
+
       if (!active) return;
-      drawFirstFrame();
       setFadingOut(true);
-    }).catch((e) => {
-      console.error('[ScrollScene] Decode failed:', e);
-      if (active) setFadingOut(true);
-    });
+
+      const batchSize = 10;
+      for (let start = 10; start < SELECTED_COUNT; start += batchSize) {
+        if (!active) return;
+        const batch = Array.from({ length: batchSize }, (_, k) => start + k).filter((i) => i < SELECTED_COUNT);
+        await loadBatch(batch);
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    };
+
+    loadAll();
 
     return () => {
       active = false;
-      decoder.destroy();
-      decoderRef.current = null;
     };
-  }, [drawFirstFrame]);
+  }, []);
 
   useEffect(() => {
     if (!fadingOut) return;
@@ -171,24 +237,7 @@ export default function ScrollScene({
         const progress = computeProgress();
         progressRef.current = progress;
 
-        if (HAS_WEBCODECS && decoderRef.current?.isReady) {
-          const canvas = canvasRef.current;
-          if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              decoderRef.current.drawFrame(ctx, canvas.width, canvas.height, progress, isRtl);
-            }
-          }
-        } else {
-          const video = videoRef.current;
-          if (video && video.duration > 0) {
-            const target = progress * video.duration;
-            if (Math.abs(video.currentTime - target) > 0.04) {
-              video.currentTime = target;
-            }
-          }
-        }
+        drawByProgress(progress);
 
         const pct = progress * 100;
 
@@ -244,10 +293,10 @@ export default function ScrollScene({
       window.removeEventListener('scroll', onScroll);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [loading, overlays, navbarHeight]);
+  }, [loading, overlays, navbarHeight, drawByProgress]);
 
   useEffect(() => {
-    if (loading || !HAS_WEBCODECS) return;
+    if (loading) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -255,22 +304,15 @@ export default function ScrollScene({
     if (!parent) return;
 
     const update = () => {
-      const rect = parent.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const w = Math.floor(rect.width * dpr);
-      const h = Math.floor(rect.height * dpr);
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-        drawFirstFrame();
-      }
+      lastDrawnRef.current = -1;
+      drawByProgress(progressRef.current);
     };
 
     update();
     const ro = new ResizeObserver(update);
     ro.observe(parent);
     return () => ro.disconnect();
-  }, [loading, drawFirstFrame]);
+  }, [loading, drawByProgress]);
 
   return (
     <>
@@ -301,7 +343,6 @@ export default function ScrollScene({
               style={{ height: '1px', zIndex: 30 }}
             />
 
-          {HAS_WEBCODECS ? (
             <div
               className="pointer-events-none overflow-hidden"
               style={{
@@ -324,63 +365,48 @@ export default function ScrollScene({
                 }}
               />
             </div>
-          ) : (
-            <div className={`absolute top-0 ${isRtl ? 'left-0' : 'right-0'} h-full overflow-hidden pointer-events-none`}>
-              <video
-                ref={videoRef}
-                className="h-full w-auto max-w-[50vw] object-cover object-left-top pointer-events-none"
-                muted
-                playsInline
-                preload="auto"
-                style={{ border: 'none', outline: 'none', transform: isRtl ? 'none' : 'scaleX(-1)' }}
-              >
-                <source src={WEBM_URL} type="video/webm" />
-                <source src={MP4_URL} type="video/mp4" />
-              </video>
-            </div>
-          )}
 
-          <div className={`absolute ${isRtl ? 'right-0 pr-6 sm:pr-10 md:pr-16 lg:pr-24' : 'left-0 pl-6 sm:pl-10 md:pl-16 lg:pl-24'} top-1/2 -translate-y-1/2 w-[50%] max-w-md lg:max-w-lg xl:max-w-xl pointer-events-none`}>
-            <div className="w-full">
-              {overlays.map((overlay, index) => (
-                <div
-                  key={index}
-                  ref={(el) => { overlayRefs.current[index] = el; }}
-                  className={`scrolly-overlay-${index}`}
-                  style={{
-                    textAlign: isRtl ? 'right' : 'left',
-                    direction: isRtl ? 'rtl' : 'ltr',
-                    display: 'none',
-                    opacity: '0',
-                  }}
-                >
-                  {(overlay.subtitleAr || overlay.subtitleEn) && (
-                    <span className="text-teal-600 text-[10px] sm:text-xs md:text-sm lg:text-base font-bold uppercase tracking-widest block mb-1.5 sm:mb-2 font-cairo">
-                      {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
-                    </span>
-                  )}
-                  <h2 className="text-slate-900 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
-                    {isRtl ? overlay.titleAr : overlay.titleEn}
-                  </h2>
-                  <p className="text-slate-500 text-[10px] sm:text-xs md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
-                    {isRtl ? overlay.descAr : overlay.descEn}
-                  </p>
-                  {overlay.ctaAr && overlay.ctaEn && overlay.ctaHref && (
-                    <a
-                      href={overlay.ctaHref}
-                      className="pointer-events-auto inline-block mt-2 sm:mt-3 md:mt-4 px-3 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-teal-600 hover:bg-teal-700 text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
-                    >
-                      {isRtl ? overlay.ctaAr : overlay.ctaEn}
-                    </a>
-                  )}
-                </div>
-              ))}
+            <div className={`absolute ${isRtl ? 'right-0 pr-6 sm:pr-10 md:pr-16 lg:pr-24' : 'left-0 pl-6 sm:pl-10 md:pl-16 lg:pl-24'} top-1/2 -translate-y-1/2 w-[50%] max-w-md lg:max-w-lg xl:max-w-xl pointer-events-none`}>
+              <div className="w-full">
+                {overlays.map((overlay, index) => (
+                  <div
+                    key={index}
+                    ref={(el) => { overlayRefs.current[index] = el; }}
+                    className={`scrolly-overlay-${index}`}
+                    style={{
+                      textAlign: isRtl ? 'right' : 'left',
+                      direction: isRtl ? 'rtl' : 'ltr',
+                      display: 'none',
+                      opacity: '0',
+                    }}
+                  >
+                    {(overlay.subtitleAr || overlay.subtitleEn) && (
+                      <span className="text-teal-600 text-[10px] sm:text-xs md:text-sm lg:text-base font-bold uppercase tracking-widest block mb-1.5 sm:mb-2 font-cairo">
+                        {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
+                      </span>
+                    )}
+                    <h2 className="text-slate-900 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
+                      {isRtl ? overlay.titleAr : overlay.titleEn}
+                    </h2>
+                    <p className="text-slate-500 text-[10px] sm:text-xs md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
+                      {isRtl ? overlay.descAr : overlay.descEn}
+                    </p>
+                    {overlay.ctaAr && overlay.ctaEn && overlay.ctaHref && (
+                      <a
+                        href={overlay.ctaHref}
+                        className="pointer-events-auto inline-block mt-2 sm:mt-3 md:mt-4 px-3 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-teal-600 hover:bg-teal-700 text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
+                      >
+                        {isRtl ? overlay.ctaAr : overlay.ctaEn}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          {children}
         </div>
-        {children}
-      </div>
-    </section>
+      </section>
     </>
   );
 }
