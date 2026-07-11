@@ -120,64 +120,75 @@ body {
 
 /* Qabnix badge animated glow */
 .qabnix-badge {
-  background: rgba(30, 41, 59, 0.9);
-  color: #93c5fd;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  transition: all 0.3s ease;
-}
-
-.qabnix-badge::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(
-    from var(--qabnix-angle, 0deg),
-    transparent 0%,
-    transparent 25%,
-    #3b82f6 35%,
-    #a78bfa 45%,
-    #60a5fa 55%,
-    transparent 65%,
-    transparent 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: qabnix-glow-spin 3s linear infinite;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.qabnix-badge:hover::before {
-  opacity: 1;
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 9999px;
+  isolation: isolate;
+  text-decoration: none;
+  /* توهج نابع من الزرار نفسه */
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.45), 0 0 24px rgba(59, 130, 246, 0.25);
+  transition: box-shadow 0.3s ease;
 }
 
 .qabnix-badge:hover {
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow:
-    0 0 15px rgba(59, 130, 246, 0.2),
-    0 0 30px rgba(139, 92, 246, 0.1);
-  color: #bfdbfe;
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.7), 0 0 36px rgba(59, 130, 246, 0.4);
 }
 
-@keyframes qabnix-glow-spin {
-  from {
-    --qabnix-angle: 0deg;
-  }
+.qabnix-badge-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.qabnix-badge-ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.qabnix-badge-ring rect {
+  fill: none;
+  stroke: #60a5fa;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 60 400;
+  animation: qabnix-dash 3s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(96, 165, 250, 1)) drop-shadow(0 0 8px rgba(96, 165, 250, 0.6));
+}
+
+.qabnix-badge:hover .qabnix-badge-ring rect {
+  stroke: #bfdbfe;
+  filter: drop-shadow(0 0 6px rgba(96, 165, 250, 1)) drop-shadow(0 0 14px rgba(96, 165, 250, 0.9));
+}
+
+@keyframes qabnix-dash {
   to {
-    --qabnix-angle: 360deg;
+    stroke-dashoffset: -460;
   }
 }
 
-@property --qabnix-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
+/* لون خلفية مختلف تمامًا عن الفوتر (slate-900) عشان يبان بارز */
+.qabnix-badge-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #1e3b8a00, #1e40af00);
+  color: #dbeafe;
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  font-size: 11px;
+  font-weight: 700;
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
+.qabnix-badge:hover .qabnix-badge-content {
+  background: linear-gradient(135deg, #1e40af17, #05369e28);
+  color: #ffffff;
+}
 /* Hero canvas */
 .hero-canvas {
   will-change: contents;

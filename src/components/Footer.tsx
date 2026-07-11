@@ -91,19 +91,26 @@ export default function Footer() {
           </p>
           <a
             href={isRtl ? 'https://qabnix.web.app/ar' : 'https://qabnix.web.app/en'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="qabnix-badge relative inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center gap-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
-              <span>{locale === 'ar' ? 'صنع بواسطة كابنكس' : 'Powered by Qabnix'}</span>
-            </span>
-          </a>
+  target="_blank"
+  rel="noopener noreferrer"
+  className="qabnix-badge"
+>
+  <span className="qabnix-badge-ring" aria-hidden="true">
+    <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+      <rect x="1" y="1" width="calc(100% - 2px)" height="calc(100% - 2px)" rx="9999" ry="9999" />
+    </svg>
+  </span>
+  <span className="qabnix-badge-content">
+    <Image
+      src="/images/logos/qabnix.webp"
+      alt="Qabnix"
+      width={22}
+      height={22}
+      className="w-[22px] h-[22px] object-contain"
+    />
+    <span>{locale === 'ar' ? 'صنع بواسطة قابنيكس' : 'Powered by Qabnix'}</span>
+  </span>
+</a>
         </div>
       </div>
     </footer>

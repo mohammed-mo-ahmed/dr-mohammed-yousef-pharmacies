@@ -28,6 +28,12 @@ const TOTAL_FRAMES = 183;
 const STEP = 3;
 const SELECTED_COUNT = Math.ceil(TOTAL_FRAMES / STEP);
 
+// Controls how much vertical scroll distance the pinned hero section occupies.
+// Larger numbers = slower scroll-driven animation (more scrolling needed to
+// finish it); smaller numbers = faster. Tune these two values directly.
+const SCROLL_DISTANCE_MOBILE_VH = 300; // was 500
+const SCROLL_DISTANCE_DESKTOP_VH = 300; // was 400
+
 function framePath(index: number): string {
   const num = index * STEP + 1;
   return `/frames/${String(num).padStart(5, '0')}.webp`;
@@ -369,9 +375,13 @@ export default function ScrollScene({
         </div>
       )}
 
+      {/* Keep these two Tailwind height classes in sync with the
+          SCROLL_DISTANCE_MOBILE_VH / SCROLL_DISTANCE_DESKTOP_VH constants
+          above — Tailwind's JIT compiler needs literal class strings, so it
+          can't read the JS constants directly. */}
       <section
         ref={containerRef}
-        className="relative w-full bg-white h-[500vh] md:h-[400vh]"
+        className="relative w-full bg-white h-[300vh] md:h-[300vh]"
       >
         <div
           ref={panelRef}
