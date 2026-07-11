@@ -24,7 +24,6 @@ interface ScrollSceneProps {
   children?: ReactNode;
 }
 
-const SCROLL_DISTANCE_VH = 400;
 const TOTAL_FRAMES = 183;
 const STEP = 3;
 const SELECTED_COUNT = Math.ceil(TOTAL_FRAMES / STEP);
@@ -249,36 +248,36 @@ export default function ScrollScene({
 
           const start = overlay.startPercentage;
           const end = overlay.endPercentage;
-          const duration = end - start;
 
-          if (pct > end) {
-            if (overlay.persistAfterEnd) {
-              el.style.display = 'block';
-              el.style.opacity = '1';
-              el.style.transform = 'translateY(0)';
-            } else {
-              el.style.display = 'none';
-            }
+          const prevEnd = index > 0 ? overlays[index - 1].endPercentage : start;
+          const nextStart = index < overlays.length - 1
+            ? overlays[index + 1].startPercentage
+            : (overlay.persistAfterEnd ? 1000 : end);
+
+          const fadeInStart = prevEnd;
+          const fadeInEnd = start;
+          const fadeOutStart = end;
+          const fadeOutEnd = overlay.persistAfterEnd ? 1000 : nextStart;
+
+          if (pct < fadeInStart) {
+            el.style.display = 'none';
             return;
           }
 
-          if (pct < start) {
+          if (!overlay.persistAfterEnd && pct > fadeOutEnd) {
             el.style.display = 'none';
             return;
           }
 
           el.style.display = 'block';
 
-          const fadeInEnd = start + duration * 0.2;
-          const fadeOutStart = start + duration * 0.8;
-
-          if (pct < fadeInEnd && start > 0) {
-            const t = (pct - start) / (duration * 0.2);
-            el.style.opacity = String(t);
+          if (pct < fadeInEnd && fadeInStart < fadeInEnd) {
+            const t = (pct - fadeInStart) / (fadeInEnd - fadeInStart);
+            el.style.opacity = String(Math.max(0, Math.min(1, t)));
             el.style.transform = `translateY(${(1 - t) * 10}px)`;
-          } else if (pct > fadeOutStart && !overlay.persistAfterEnd) {
-            const t = (pct - fadeOutStart) / (duration * 0.2);
-            el.style.opacity = String(1 - t);
+          } else if (pct > fadeOutStart && !overlay.persistAfterEnd && fadeOutStart < fadeOutEnd) {
+            const t = (pct - fadeOutStart) / (fadeOutEnd - fadeOutStart);
+            el.style.opacity = String(Math.max(0, Math.min(1, 1 - t)));
             el.style.transform = `translateY(${-t * 10}px)`;
           } else {
             el.style.opacity = '1';
@@ -319,7 +318,8 @@ export default function ScrollScene({
 
   const canvasWrapperClass = [
     'pointer-events-none overflow-hidden',
-    'relative w-full h-[45dvh]',
+    'relative w-full m-0 p-0',
+    'h-[45dvh]',
     'md:absolute md:top-0 md:h-full md:w-1/2',
     isRtl ? 'md:left-0' : 'md:right-0',
   ].join(' ');
@@ -347,15 +347,14 @@ export default function ScrollScene({
 
       <section
         ref={containerRef}
-        className="relative w-full bg-white"
-        style={{ height: `calc(${SCROLL_DISTANCE_VH}vh)` }}
+        className="relative w-full bg-white h-[500vh] md:h-[400vh]"
       >
         <div
           ref={panelRef}
-          className="sticky w-full bg-white"
+          className="sticky w-full bg-white m-0"
           style={{ top: navbarHeight }}
         >
-          <div className="relative w-full overflow-hidden bg-white md:h-[65dvh]">
+          <div className="relative w-full overflow-hidden bg-white m-0 p-0 md:h-[65dvh]">
             <div
               className="absolute top-0 left-0 right-0 bg-white pointer-events-none"
               style={{ height: '1px', zIndex: 30 }}
@@ -390,11 +389,11 @@ export default function ScrollScene({
                     }}
                   >
                     {(overlay.subtitleAr || overlay.subtitleEn) && (
-                      <span className="text-teal-600 text-[10px] sm:text-xs md:text-sm lg:text-base font-bold uppercase tracking-widest block mb-1.5 sm:mb-2 font-cairo">
+                      <span className="text-teal-600 text-[11px] sm:text-xs md:text-sm lg:text-base font-bold uppercase tracking-widest block mb-1.5 sm:mb-2 font-cairo">
                         {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
                       </span>
                     )}
-                    <h2 className="text-slate-900 text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
+                    <h2 className="text-slate-900 text-2xl sm:text-3xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
                       {isRtl ? overlay.titleAr : overlay.titleEn}
                     </h2>
                     <p className="text-slate-500 text-xs sm:text-sm md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
