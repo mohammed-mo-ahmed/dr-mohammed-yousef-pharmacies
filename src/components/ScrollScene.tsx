@@ -53,6 +53,7 @@ export default function ScrollScene({
   const imagesRef = useRef<(HTMLImageElement | null)[]>(new Array(SELECTED_COUNT).fill(null));
   const loadedCountRef = useRef(0);
   const lastDrawnRef = useRef(-1);
+  const isMobileRef = useRef(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   const isRtl = locale === 'ar';
 
@@ -79,6 +80,7 @@ export default function ScrollScene({
 
     const srcAspect = srcW / srcH;
     const dstAspect = bufW / bufH;
+    const mobile = isMobileRef.current;
 
     let drawW: number;
     let drawH: number;
@@ -93,8 +95,8 @@ export default function ScrollScene({
     } else {
       drawH = bufH;
       drawW = bufH * srcAspect;
-      offsetX = isRtl ? 0 : bufW - drawW;
-      offsetY = 0;
+      offsetX = mobile ? (bufW - drawW) / 2 : (isRtl ? 0 : bufW - drawW);
+      offsetY = mobile ? (bufH - drawH) / 2 : 0;
     }
 
     ctx.drawImage(img, 0, 0, srcW, srcH, offsetX, offsetY, drawW, drawH);
@@ -304,6 +306,7 @@ export default function ScrollScene({
     if (!parent) return;
 
     const update = () => {
+      isMobileRef.current = window.innerWidth < 768;
       lastDrawnRef.current = -1;
       drawByProgress(progressRef.current);
     };
@@ -313,6 +316,21 @@ export default function ScrollScene({
     ro.observe(parent);
     return () => ro.disconnect();
   }, [loading, drawByProgress]);
+
+  const canvasWrapperClass = [
+    'pointer-events-none overflow-hidden',
+    'relative w-full h-[45dvh]',
+    'md:absolute md:top-0 md:h-full md:w-1/2',
+    isRtl ? 'md:left-0' : 'md:right-0',
+  ].join(' ');
+
+  const textOverlayClass = [
+    'relative w-full pointer-events-none',
+    'px-5 py-3',
+    'md:absolute md:top-1/2 md:-translate-y-1/2 md:w-1/2 md:px-0 md:py-0',
+    'max-w-md lg:max-w-lg xl:max-w-xl',
+    isRtl ? 'md:right-0 md:pr-6 lg:pr-24' : 'md:left-0 md:pl-6 lg:pl-24',
+  ].join(' ');
 
   return (
     <>
@@ -337,22 +355,13 @@ export default function ScrollScene({
           className="sticky w-full bg-white"
           style={{ top: navbarHeight }}
         >
-          <div className="relative w-full overflow-hidden bg-white" style={{ height: '65dvh' }}>
+          <div className="relative w-full overflow-hidden bg-white md:h-[65dvh]">
             <div
               className="absolute top-0 left-0 right-0 bg-white pointer-events-none"
               style={{ height: '1px', zIndex: 30 }}
             />
 
-            <div
-              className="pointer-events-none overflow-hidden"
-              style={{
-                position: 'absolute',
-                top: 0,
-                [isRtl ? 'left' : 'right']: 0,
-                width: '50%',
-                height: '100%',
-              }}
-            >
+            <div className={canvasWrapperClass}>
               <canvas
                 ref={canvasRef}
                 className="hero-canvas pointer-events-none"
@@ -366,7 +375,7 @@ export default function ScrollScene({
               />
             </div>
 
-            <div className={`absolute ${isRtl ? 'right-0 pr-6 sm:pr-10 md:pr-16 lg:pr-24' : 'left-0 pl-6 sm:pl-10 md:pl-16 lg:pl-24'} top-1/2 -translate-y-1/2 w-[50%] max-w-md lg:max-w-lg xl:max-w-xl pointer-events-none`}>
+            <div className={textOverlayClass}>
               <div className="w-full">
                 {overlays.map((overlay, index) => (
                   <div
@@ -385,16 +394,16 @@ export default function ScrollScene({
                         {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
                       </span>
                     )}
-                    <h2 className="text-slate-900 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
+                    <h2 className="text-slate-900 text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
                       {isRtl ? overlay.titleAr : overlay.titleEn}
                     </h2>
-                    <p className="text-slate-500 text-[10px] sm:text-xs md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
+                    <p className="text-slate-500 text-xs sm:text-sm md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
                       {isRtl ? overlay.descAr : overlay.descEn}
                     </p>
                     {overlay.ctaAr && overlay.ctaEn && overlay.ctaHref && (
                       <a
                         href={overlay.ctaHref}
-                        className="pointer-events-auto inline-block mt-2 sm:mt-3 md:mt-4 px-3 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-teal-600 hover:bg-teal-700 text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
+                        className="pointer-events-auto inline-block mt-2 sm:mt-3 md:mt-4 px-4 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm md:text-sm lg:text-base font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
                       >
                         {isRtl ? overlay.ctaAr : overlay.ctaEn}
                       </a>
