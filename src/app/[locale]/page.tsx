@@ -7,9 +7,10 @@ import ScrollScene, { ScrollOverlay } from '@/components/ScrollScene';
 import ProductCard from '@/components/ProductCard';
 import OfferCard from '@/components/OfferCard';
 import InfiniteCarousel from '@/components/InfiniteCarousel';
+import CustomerReviews from '@/components/CustomerReviews';
 import { getCategories, getProducts, getOffers } from '@/lib/api';
 import { Product, Category, Offer } from '@/types';
-import { Search, ChevronLeft, ChevronRight, ShoppingBag, Shield, Truck, Clock, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, Shield, Truck, Clock, Award } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 
@@ -24,7 +25,6 @@ export default function HomePage() {
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [bestSellingProducts, setBestSellingProducts] = useState<Product[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if ('scrollRestoration' in history) {
@@ -54,13 +54,6 @@ export default function HomePage() {
 
     loadHomeData();
   }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   const heroOverlays: ScrollOverlay[] = [
     {
@@ -108,17 +101,14 @@ export default function HomePage() {
   return (
     <div className="w-full bg-white">
       <ScrollScene
-        frameCount={183}
-        framePathPattern={(i) => `/frames/${String(i).padStart(5, '0')}.webp`}
         overlays={heroOverlays}
         locale={locale}
         navbarHeight={80}
-      />
-
-      <div className="relative bg-white">
-
-      {/* FEATURES */}
-      <section className="bg-gradient-to-b from-teal-50 to-slate-100 py-16">
+      >
+      {/* FEATURES — rendered inside ScrollScene section, below the sticky hero panel */}
+      <section
+        className="bg-gradient-to-b from-teal-50 to-slate-100 py-8 md:py-10"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[
@@ -145,6 +135,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </ScrollScene>
+
+      <div className="relative bg-white">
 
       {/* OFFERS CAROUSEL */}
       <section className="bg-slate-50 py-20">
@@ -260,38 +253,8 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* SEARCH BAR */}
-      <section className="bg-slate-50 py-14">
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-              {isRtl ? 'ابحث عن منتجك' : 'Find Your Product'}
-            </h2>
-            <p className="text-slate-500 text-sm mt-1.5 font-cairo">
-              {isRtl ? 'تصفح آلاف المنتجات الطبية والتجميلية' : 'Browse thousands of medical and cosmetic products'}
-            </p>
-          </div>
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('common.searchPlaceholder')}
-              className={`w-full py-4 md:py-5 pl-5 pr-14 text-slate-700 bg-white rounded-2xl text-base md:text-lg border-2 border-slate-200 focus:border-teal-500 focus:outline-none transition-all shadow-sm focus:shadow-lg font-cairo ${
-                isRtl ? 'text-right pr-5 pl-14' : 'text-left'
-              }`}
-            />
-            <button
-              type="submit"
-              className={`absolute top-1/2 -translate-y-1/2 p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-all shadow-md ${
-                isRtl ? 'left-2' : 'right-2'
-              }`}
-            >
-              <Search size={20} />
-            </button>
-          </form>
-        </div>
-      </section>
+      {/* CUSTOMER REVIEWS */}
+      <CustomerReviews />
 
       {/* CATEGORIES */}
       {categories.length > 0 && (

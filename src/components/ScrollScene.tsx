@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { FrameDecoder } from '@/lib/frame-decoder';
 
 export interface ScrollOverlay {
   startPercentage: number;
@@ -18,170 +19,88 @@ export interface ScrollOverlay {
 }
 
 interface ScrollSceneProps {
-  frameCount: number;
-  framePathPattern: (index: number) => string;
   overlays: ScrollOverlay[];
   locale: string;
   navbarHeight?: number;
+  children?: ReactNode;
 }
 
-const SCROLL_DISTANCE_VH = 142;
+const SCROLL_DISTANCE_VH = 400;
+const MP4_URL = '/animation.mp4';
+const WEBM_URL = '/animation.webm';
+const HAS_WEBCODECS = typeof VideoDecoder !== 'undefined';
 
 export default function ScrollScene({
-  frameCount,
-  framePathPattern,
   overlays,
   locale,
   navbarHeight = 80,
+  children,
 }: ScrollSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const decoderRef = useRef<FrameDecoder | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [fadingOut, setFadingOut] = useState(false);
-  const allLoadedRef = useRef(false);
-  const firstFrameRenderedRef = useRef(false);
 
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const lastRenderedFrameRef = useRef<number>(-1);
-  const currentFrameRef = useRef<number>(0);
   const animationFrameRef = useRef<number>(0);
+  const progressRef = useRef(0);
 
-  const renderFrameOnCanvas = (canvas: HTMLCanvasElement | null, index: number) => {
-    if (!canvas || imagesRef.current.length === 0) return;
-    if (index === lastRenderedFrameRef.current) return;
-    lastRenderedFrameRef.current = index;
+  const isRtl = locale === 'ar';
 
-    const img = imagesRef.current[index];
-    if (!img || !img.complete) return;
-
+  const drawFirstFrame = useCallback(() => {
+    const canvas = canvasRef.current;
+    const decoder = decoderRef.current;
+    if (!canvas || !decoder?.isReady) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    currentFrameRef.current = index;
-
+    const rect = canvas.parentElement?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
     const dpr = window.devicePixelRatio || 1;
-    const cssWidth = canvas.clientWidth;
-    const cssHeight = canvas.clientHeight;
-    const bufWidth = Math.ceil(cssWidth * dpr);
-    const bufHeight = Math.ceil(cssHeight * dpr);
-
-    if (canvas.width !== bufWidth || canvas.height !== bufHeight) {
-      canvas.width = bufWidth;
-      canvas.height = bufHeight;
-      ctx.scale(dpr, dpr);
+    const w = Math.floor(rect.width * dpr);
+    const h = Math.floor(rect.height * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
     }
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, cssWidth, cssHeight);
-
-    const imgWidth = img.naturalWidth || img.width;
-    const imgHeight = img.naturalHeight || img.height;
-    const scale = Math.min(cssWidth / imgWidth, cssHeight / imgHeight) * 0.90;
-
-    ctx.drawImage(img, 0, 0, imgWidth * scale, imgHeight * scale);
-  };
-
-  const renderFrame = (index: number) => {
-    renderFrameOnCanvas(canvasRef.current, index);
-  };
+    decoder.drawFrame(ctx, w, h, 0, isRtl);
+  }, [isRtl]);
 
   useEffect(() => {
-    let active = true;
-    let observer: IntersectionObserver | null = null;
-    const el = containerRef.current;
-
-    const loadImages = () => {
-      const loadedImages: HTMLImageElement[] = [];
-      let loadedCount = 0;
-
-      const checkAllLoaded = () => {
-        loadedCount++;
-        if (active) {
-          if (loadedCount === 1) {
-            imagesRef.current = loadedImages;
-            renderFrameOnCanvas(canvasRef.current, 0);
-          }
-        }
-        if (loadedCount === frameCount && active) {
-          imagesRef.current = loadedImages;
-          allLoadedRef.current = true;
-          if (firstFrameRenderedRef.current) {
-            setFadingOut(true);
-          } else {
-            firstFrameRenderedRef.current = true;
-            setFadingOut(true);
-          }
-        }
-      };
-
-      for (let i = 1; i <= frameCount; i++) {
-        const img = new Image();
-        if (i === 1) img.fetchPriority = 'high';
-        img.src = framePathPattern(i);
-        img.onload = checkAllLoaded;
-        img.onerror = () => {
-          console.error('Failed to load frame: ' + framePathPattern(i));
-          checkAllLoaded();
-        };
-        loadedImages.push(img);
-      }
-    };
-
-    if (el) {
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            loadImages();
-            observer?.disconnect();
-          }
-        },
-        { rootMargin: '200px' }
-      );
-      observer.observe(el);
-    } else {
-      loadImages();
+    if (!HAS_WEBCODECS) {
+      const video = videoRef.current;
+      if (!video) return;
+      let active = true;
+      const onCanPlay = () => { if (active) setFadingOut(true); };
+      const onError = () => { if (active) setFadingOut(true); };
+      video.addEventListener('canplay', onCanPlay);
+      video.addEventListener('error', onError);
+      video.load();
+      return () => { active = false; video.removeEventListener('canplay', onCanPlay); video.removeEventListener('error', onError); };
     }
+
+    let active = true;
+    const decoder = new FrameDecoder();
+    decoderRef.current = decoder;
+
+    decoder.init(MP4_URL).then(() => {
+      if (!active) return;
+      drawFirstFrame();
+      setFadingOut(true);
+    }).catch((e) => {
+      console.error('[ScrollScene] Decode failed:', e);
+      if (active) setFadingOut(true);
+    });
 
     return () => {
       active = false;
-      observer?.disconnect();
+      decoder.destroy();
+      decoderRef.current = null;
     };
-  }, [frameCount, framePathPattern]);
-
-  useEffect(() => {
-    let active = true;
-    const src = framePathPattern(1);
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = src;
-    link.fetchPriority = 'high';
-    document.head.appendChild(link);
-    const img = new Image();
-    img.fetchPriority = 'high';
-    img.onload = () => {
-      if (active) {
-        imagesRef.current[0] = img;
-        renderFrameOnCanvas(canvasRef.current, 0);
-        firstFrameRenderedRef.current = true;
-        if (allLoadedRef.current) setFadingOut(true);
-      }
-    };
-    img.onerror = () => {
-      console.error('Failed to preload hero frame: ' + src);
-      if (active) {
-        firstFrameRenderedRef.current = true;
-        if (allLoadedRef.current) setFadingOut(true);
-      }
-    };
-    img.src = src;
-    return () => {
-      active = false;
-      try { document.head.removeChild(link); } catch {}
-    };
-  }, [framePathPattern]);
+  }, [drawFirstFrame]);
 
   useEffect(() => {
     if (!fadingOut) return;
@@ -193,8 +112,6 @@ export default function ScrollScene({
     if (!loading) return;
     const timer = setTimeout(() => {
       console.warn('Hero preloader timed out — forcing completion');
-      allLoadedRef.current = true;
-      firstFrameRenderedRef.current = true;
       setFadingOut(true);
     }, 15000);
     return () => clearTimeout(timer);
@@ -235,28 +152,42 @@ export default function ScrollScene({
   }, [loading]);
 
   useEffect(() => {
-    if (loading || !containerRef.current || !canvasRef.current || imagesRef.current.length === 0) return;
-
-    const lastFrame = frameCount - 1;
+    if (loading || !containerRef.current) return;
 
     const computeProgress = () => {
       const el = containerRef.current;
       if (!el) return 0;
       const rect = el.getBoundingClientRect();
-      const totalScroll = rect.height;
-      if (totalScroll <= 0) return 0;
-      return Math.min(1, Math.max(0, -rect.top / totalScroll));
+      const scrollIntoSection = Math.max(0, -rect.top);
+      const panelHeight = panelRef.current?.offsetHeight || window.innerHeight * 0.6;
+      const pinDistance = rect.height - panelHeight - navbarHeight;
+      if (pinDistance <= 0) return 0;
+      return Math.min(1, Math.max(0, scrollIntoSection / pinDistance));
     };
 
     const onScroll = () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = requestAnimationFrame(() => {
         const progress = computeProgress();
-        const frameIndex = Math.min(lastFrame, Math.round(progress * lastFrame));
-        if (frameIndex !== lastRenderedFrameRef.current) {
-          renderFrame(frameIndex);
+        progressRef.current = progress;
+
+        if (HAS_WEBCODECS && decoderRef.current?.isReady) {
+          const canvas = canvasRef.current;
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              decoderRef.current.drawFrame(ctx, canvas.width, canvas.height, progress, isRtl);
+            }
+          }
+        } else {
+          const video = videoRef.current;
+          if (video && video.duration > 0) {
+            const target = progress * video.duration;
+            if (Math.abs(video.currentTime - target) > 0.04) {
+              video.currentTime = target;
+            }
+          }
         }
 
         const pct = progress * 100;
@@ -306,102 +237,150 @@ export default function ScrollScene({
       });
     };
 
-    const handleResize = () => {
-      renderFrame(currentFrameRef.current);
-    };
-
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', handleResize);
-
     onScroll();
 
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', handleResize);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    };
+  }, [loading, overlays, navbarHeight]);
+
+  useEffect(() => {
+    if (loading || !HAS_WEBCODECS) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    const update = () => {
+      const rect = parent.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.floor(rect.width * dpr);
+      const h = Math.floor(rect.height * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        drawFirstFrame();
       }
     };
-  }, [loading, frameCount, overlays, navbarHeight]);
 
-  const isRtl = locale === 'ar';
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(parent);
+    return () => ro.disconnect();
+  }, [loading, drawFirstFrame]);
 
   return (
-    <section
-      ref={containerRef}
-      className="relative w-full bg-white"
-      style={{ height: `calc(${SCROLL_DISTANCE_VH}vh)` }}
-    >
-      <div
-        className="sticky overflow-hidden bg-white"
-        style={{ top: navbarHeight, height: '70dvh' }}
+    <>
+      {(loading || fadingOut) && (
+        <div
+          className={`fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-300 ${
+            fadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+          style={{ minHeight: '100dvh' }}
+        >
+          <div className="w-16 h-16 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+        </div>
+      )}
+
+      <section
+        ref={containerRef}
+        className="relative w-full bg-white"
+        style={{ height: `calc(${SCROLL_DISTANCE_VH}vh)` }}
       >
-        {(loading || fadingOut) && (
-          <div
-            className={`absolute inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-300 ${
-              fadingOut ? 'opacity-0' : 'opacity-100'
-            }`}
-          >
-            <div className="w-16 h-16 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
-          </div>
-        )}
+        <div
+          ref={panelRef}
+          className="sticky w-full bg-white"
+          style={{ top: navbarHeight }}
+        >
+          <div className="relative w-full overflow-hidden bg-white" style={{ height: '65dvh' }}>
+            <div
+              className="absolute top-0 left-0 right-0 bg-white pointer-events-none"
+              style={{ height: '1px', zIndex: 30 }}
+            />
 
-        <div className="absolute inset-0 overflow-hidden bg-white">
-          <div className="absolute top-0 left-0 right-0 z-20 bg-white" style={{ height: '2px' }} />
-          <canvas
-            ref={canvasRef}
-            className={`w-full h-full pointer-events-none bg-white ${isRtl ? '' : 'scale-x-[-1]'}`}
-            style={{ border: 'none', outline: 'none' }}
-          />
-          <div
-            className={`absolute ${isRtl ? 'left-0' : 'right-0'} bottom-[18%] w-[55%] h-5 pointer-events-none z-0`}
-            style={{
-              background: isRtl
-                ? 'radial-gradient(ellipse 80% 50% at 0% 50%, rgba(0,0,0,0.14) 0%, transparent 70%)'
-                : 'radial-gradient(ellipse 80% 50% at 100% 50%, rgba(0,0,0,0.14) 0%, transparent 70%)',
-              borderRadius: '50%',
-            }}
-          />
-        </div>
-
-        <div className={`absolute ${isRtl ? 'right-0' : 'left-0'} top-16 sm:top-20 md:top-24 lg:top-28 xl:top-32 ${isRtl ? 'mr-6 sm:mr-10 md:mr-24 lg:mr-32 xl:mr-40' : 'ml-6 sm:ml-10 md:ml-24 lg:ml-32 xl:ml-40'} max-w-sm sm:max-w-md lg:max-w-xl xl:max-w-3xl pointer-events-none overflow-y-auto h-[calc(100%-5rem)]`}>
-          <div className="w-full">
-            {overlays.map((overlay, index) => (
-              <div
-                key={index}
-                ref={(el) => { overlayRefs.current[index] = el; }}
-                className={`scrolly-overlay-${index}`}
+          {HAS_WEBCODECS ? (
+            <div
+              className="pointer-events-none overflow-hidden"
+              style={{
+                position: 'absolute',
+                top: 0,
+                [isRtl ? 'left' : 'right']: 0,
+                width: '50%',
+                height: '100%',
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="hero-canvas pointer-events-none"
                 style={{
-                  textAlign: isRtl ? 'right' : 'left',
-                  direction: isRtl ? 'rtl' : 'ltr',
-                  display: 'none',
-                  opacity: '0',
+                  display: 'block',
+                  width: '100%',
+                  height: '100%',
+                  imageRendering: 'auto',
+                  transform: isRtl ? 'none' : 'scaleX(-1)',
                 }}
+              />
+            </div>
+          ) : (
+            <div className={`absolute top-0 ${isRtl ? 'left-0' : 'right-0'} h-full overflow-hidden pointer-events-none`}>
+              <video
+                ref={videoRef}
+                className="h-full w-auto max-w-[50vw] object-cover object-left-top pointer-events-none"
+                muted
+                playsInline
+                preload="auto"
+                style={{ border: 'none', outline: 'none', transform: isRtl ? 'none' : 'scaleX(-1)' }}
               >
-                {(overlay.subtitleAr || overlay.subtitleEn) && (
-                  <span className="text-teal-600 text-xs sm:text-sm md:text-base lg:text-lg font-bold uppercase tracking-widest block mb-2 sm:mb-3 font-cairo">
-                    {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
-                  </span>
-                )}
-                <h2 className="text-slate-900 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold leading-[1.2] font-cairo">
-                  {isRtl ? overlay.titleAr : overlay.titleEn}
-                </h2>
-                <p className="text-slate-500 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mt-2 sm:mt-3 md:mt-4 leading-relaxed font-cairo">
-                  {isRtl ? overlay.descAr : overlay.descEn}
-                </p>
-                {overlay.ctaAr && overlay.ctaEn && overlay.ctaHref && (
-                  <a
-                    href={overlay.ctaHref}
-                    className="pointer-events-auto inline-block mt-3 sm:mt-4 md:mt-6 px-4 sm:px-5 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm md:text-lg font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
-                  >
-                    {isRtl ? overlay.ctaAr : overlay.ctaEn}
-                  </a>
-                )}
-              </div>
-            ))}
+                <source src={WEBM_URL} type="video/webm" />
+                <source src={MP4_URL} type="video/mp4" />
+              </video>
+            </div>
+          )}
+
+          <div className={`absolute ${isRtl ? 'right-0 pr-6 sm:pr-10 md:pr-16 lg:pr-24' : 'left-0 pl-6 sm:pl-10 md:pl-16 lg:pl-24'} top-1/2 -translate-y-1/2 w-[50%] max-w-md lg:max-w-lg xl:max-w-xl pointer-events-none`}>
+            <div className="w-full">
+              {overlays.map((overlay, index) => (
+                <div
+                  key={index}
+                  ref={(el) => { overlayRefs.current[index] = el; }}
+                  className={`scrolly-overlay-${index}`}
+                  style={{
+                    textAlign: isRtl ? 'right' : 'left',
+                    direction: isRtl ? 'rtl' : 'ltr',
+                    display: 'none',
+                    opacity: '0',
+                  }}
+                >
+                  {(overlay.subtitleAr || overlay.subtitleEn) && (
+                    <span className="text-teal-600 text-[10px] sm:text-xs md:text-sm lg:text-base font-bold uppercase tracking-widest block mb-1.5 sm:mb-2 font-cairo">
+                      {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
+                    </span>
+                  )}
+                  <h2 className="text-slate-900 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
+                    {isRtl ? overlay.titleAr : overlay.titleEn}
+                  </h2>
+                  <p className="text-slate-500 text-[10px] sm:text-xs md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
+                    {isRtl ? overlay.descAr : overlay.descEn}
+                  </p>
+                  {overlay.ctaAr && overlay.ctaEn && overlay.ctaHref && (
+                    <a
+                      href={overlay.ctaHref}
+                      className="pointer-events-auto inline-block mt-2 sm:mt-3 md:mt-4 px-3 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-teal-600 hover:bg-teal-700 text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
+                    >
+                      {isRtl ? overlay.ctaAr : overlay.ctaEn}
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+        {children}
       </div>
     </section>
+    </>
   );
 }

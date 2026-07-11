@@ -90,17 +90,19 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} {t('title')}. {locale === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
           </p>
           <a
-            href="https://qabnix.com"
+            href={isRtl ? 'https://qabnix.web.app/ar' : 'https://qabnix.web.app/en'}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-400 border border-blue-500/20 hover:border-blue-400/40 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)] transition-all duration-300"
+            className="qabnix-badge relative inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold overflow-hidden"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-              <path d="M2 17l10 5 10-5"/>
-              <path d="M2 12l10 5 10-5"/>
-            </svg>
-            <span>{locale === 'ar' ? 'صنع بواسطة كابنكس' : 'Powered by Qabnix'}</span>
+            <span className="relative z-10 flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+              <span>{locale === 'ar' ? 'صنع بواسطة كابنكس' : 'Powered by Qabnix'}</span>
+            </span>
           </a>
         </div>
       </div>

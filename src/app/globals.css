@@ -117,3 +117,73 @@ body {
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Qabnix badge animated glow */
+.qabnix-badge {
+  background: rgba(30, 41, 59, 0.9);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.qabnix-badge::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--qabnix-angle, 0deg),
+    transparent 0%,
+    transparent 25%,
+    #3b82f6 35%,
+    #a78bfa 45%,
+    #60a5fa 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: qabnix-glow-spin 3s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.qabnix-badge:hover::before {
+  opacity: 1;
+}
+
+.qabnix-badge:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow:
+    0 0 15px rgba(59, 130, 246, 0.2),
+    0 0 30px rgba(139, 92, 246, 0.1);
+  color: #bfdbfe;
+}
+
+@keyframes qabnix-glow-spin {
+  from {
+    --qabnix-angle: 0deg;
+  }
+  to {
+    --qabnix-angle: 360deg;
+  }
+}
+
+@property --qabnix-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Hero canvas */
+.hero-canvas {
+  will-change: contents;
+}
+
+/* Customer review card hover */
+.review-card-glow:hover {
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.08);
+}
