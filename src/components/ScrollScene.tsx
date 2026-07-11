@@ -94,7 +94,7 @@ export default function ScrollScene({
     } else {
       drawH = bufH;
       drawW = bufH * srcAspect;
-      offsetX = mobile ? (bufW - drawW) / 2 : (isRtl ? 0 : bufW - drawW);
+      offsetX = isRtl ? 0 : bufW - drawW;
       offsetY = mobile ? (bufH - drawH) / 2 : 0;
     }
 
@@ -221,6 +221,8 @@ export default function ScrollScene({
   useEffect(() => {
     if (loading || !containerRef.current) return;
 
+    isMobileRef.current = window.innerWidth < 768;
+
     const computeProgress = () => {
       const el = containerRef.current;
       if (!el) return 0;
@@ -272,16 +274,26 @@ export default function ScrollScene({
           el.style.display = 'block';
 
           if (pct < fadeInEnd && fadeInStart < fadeInEnd) {
-            const t = (pct - fadeInStart) / (fadeInEnd - fadeInStart);
-            el.style.opacity = String(Math.max(0, Math.min(1, t)));
-            el.style.transform = `translateY(${(1 - t) * 10}px)`;
+            const t = Math.max(0, Math.min(1, (pct - fadeInStart) / (fadeInEnd - fadeInStart)));
+            el.style.opacity = String(t);
+            if (isMobileRef.current) {
+              const dir = isRtl ? 1 : -1;
+              el.style.transform = `translateX(${dir * (1 - t) * 30}px)`;
+            } else {
+              el.style.transform = `translateY(${(1 - t) * 10}px)`;
+            }
           } else if (pct > fadeOutStart && !overlay.persistAfterEnd && fadeOutStart < fadeOutEnd) {
-            const t = (pct - fadeOutStart) / (fadeOutEnd - fadeOutStart);
-            el.style.opacity = String(Math.max(0, Math.min(1, 1 - t)));
-            el.style.transform = `translateY(${-t * 10}px)`;
+            const t = Math.max(0, Math.min(1, (pct - fadeOutStart) / (fadeOutEnd - fadeOutStart)));
+            el.style.opacity = String(1 - t);
+            if (isMobileRef.current) {
+              const dir = isRtl ? -1 : 1;
+              el.style.transform = `translateX(${dir * t * 30}px)`;
+            } else {
+              el.style.transform = `translateY(${-t * 10}px)`;
+            }
           } else {
             el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
+            el.style.transform = 'none';
           }
         });
       });
@@ -311,22 +323,27 @@ export default function ScrollScene({
     };
 
     update();
+    window.addEventListener('resize', update);
     const ro = new ResizeObserver(update);
     ro.observe(parent);
-    return () => ro.disconnect();
+    return () => {
+      window.removeEventListener('resize', update);
+      ro.disconnect();
+    };
   }, [loading, drawByProgress]);
 
   const canvasWrapperClass = [
     'pointer-events-none overflow-hidden',
     'relative w-full m-0 p-0',
-    'h-[45dvh]',
+    'h-[30dvh]',
+    'md:h-[45dvh]',
     'md:absolute md:top-0 md:h-full md:w-1/2',
     isRtl ? 'md:left-0' : 'md:right-0',
   ].join(' ');
 
   const textOverlayClass = [
     'relative w-full pointer-events-none',
-    'px-5 py-3',
+    'px-5 py-3 overflow-hidden',
     'md:absolute md:top-1/2 md:-translate-y-1/2 md:w-1/2 md:px-0 md:py-0',
     'max-w-md lg:max-w-lg xl:max-w-xl',
     isRtl ? 'md:right-0 md:pr-6 lg:pr-24' : 'md:left-0 md:pl-6 lg:pl-24',
@@ -356,7 +373,7 @@ export default function ScrollScene({
         >
           <div className="relative w-full overflow-hidden bg-white m-0 p-0 md:h-[65dvh]">
             <div
-              className="absolute top-0 left-0 right-0 bg-white pointer-events-none"
+              className="hidden md:block absolute top-0 left-0 right-0 bg-white pointer-events-none"
               style={{ height: '1px', zIndex: 30 }}
             />
 
@@ -375,17 +392,18 @@ export default function ScrollScene({
             </div>
 
             <div className={textOverlayClass}>
-              <div className="w-full">
+              <div className="w-full grid">
                 {overlays.map((overlay, index) => (
                   <div
                     key={index}
                     ref={(el) => { overlayRefs.current[index] = el; }}
-                    className={`scrolly-overlay-${index}`}
+                    className={`scrolly-overlay-${index} text-center ${isRtl ? 'md:text-right' : 'md:text-left'}`}
                     style={{
-                      textAlign: isRtl ? 'right' : 'left',
                       direction: isRtl ? 'rtl' : 'ltr',
                       display: 'none',
                       opacity: '0',
+                      gridRow: '1',
+                      gridColumn: '1',
                     }}
                   >
                     {(overlay.subtitleAr || overlay.subtitleEn) && (
