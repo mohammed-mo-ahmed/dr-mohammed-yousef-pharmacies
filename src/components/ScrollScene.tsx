@@ -94,7 +94,14 @@ export default function ScrollScene({
     } else {
       drawH = bufH;
       drawW = bufH * srcAspect;
-      offsetX = isRtl ? 0 : bufW - drawW;
+      // NOTE: the canvas element itself is mirrored via CSS `scaleX(-1)` for the
+      // LTR (English) locale, so anything drawn flush against the *left* edge of
+      // the buffer ends up rendered flush against the *right* edge of the screen
+      // after the mirror is applied — and vice versa. For RTL (Arabic) there is
+      // no mirror, so we draw flush-left directly. In both cases the buffer-space
+      // offset we want is 0; only the on-screen result differs because of the
+      // CSS transform, not because of this calculation.
+      offsetX = 0;
       offsetY = mobile ? (bufH - drawH) / 2 : 0;
     }
 
@@ -373,7 +380,7 @@ export default function ScrollScene({
         >
           <div className="relative w-full overflow-hidden bg-white m-0 p-0 md:h-[65dvh]">
             <div
-              className="hidden md:block absolute top-0 left-0 right-0 bg-white pointer-events-none"
+              className="block absolute top-0 left-0 right-0 bg-white pointer-events-none"
               style={{ height: '1px', zIndex: 30 }}
             />
 
@@ -411,7 +418,7 @@ export default function ScrollScene({
                         {isRtl ? overlay.subtitleAr : overlay.subtitleEn}
                       </span>
                     )}
-                    <h2 className="text-slate-900 text-2xl sm:text-3xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-[1.2] font-cairo">
+                    <h2 className="text-slate-900 text-3xl sm:text-4xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold leading-[1.2] font-cairo">
                       {isRtl ? overlay.titleAr : overlay.titleEn}
                     </h2>
                     <p className="text-slate-500 text-xs sm:text-sm md:text-sm lg:text-base mt-1.5 sm:mt-2 md:mt-3 leading-relaxed font-cairo">
