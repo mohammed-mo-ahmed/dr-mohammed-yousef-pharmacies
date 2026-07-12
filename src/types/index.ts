@@ -71,8 +71,22 @@ export interface Order {
   delivery_method: 'home_delivery' | 'pharmacy_pickup';
   status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
   total: number;
+  user_id?: string;
   created_at?: string;
   order_items?: OrderItem[];
+}
+
+export interface Profile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  phone: string;
+  avatar_url?: string;
+  address?: string;
+  gender?: 'male' | 'female';
+  age?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Offer {

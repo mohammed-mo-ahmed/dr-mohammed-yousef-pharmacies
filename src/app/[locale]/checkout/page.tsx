@@ -5,14 +5,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { createOrder } from '@/lib/api';
+import { createOrder, getProfile } from '@/lib/api';
 import { Truck, Store, CreditCard, ShoppingBag, CheckCircle, AlertTriangle, LogIn } from 'lucide-react';
 export default function CheckoutPage() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const isRtl = locale === 'ar';
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
 
   const { cart, cartTotal, clearCart } = useCart();
 
@@ -51,6 +51,19 @@ export default function CheckoutPage() {
   // Validation errors
   const [valErrors, setValErrors] = useState<Record<string, string>>({});
 
+  // Pre-fill form from profile
+  useEffect(() => {
+    if (user) {
+      getProfile(user.id).then((profile) => {
+        if (profile) {
+          if (profile.full_name) setFullName(profile.full_name);
+          if (profile.phone) setPhone(profile.phone);
+          if (profile.address) setAddress(profile.address);
+        }
+      });
+    }
+  }, [user]);
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!fullName.trim()) errors.name = t('checkout.validation.name');
@@ -77,6 +90,7 @@ export default function CheckoutPage() {
         notes: notes,
         delivery_method: deliveryMethod,
         total: cartTotal,
+        user_id: user?.id,
       };
 
       const orderItemsPayload = cart.map((item) => ({

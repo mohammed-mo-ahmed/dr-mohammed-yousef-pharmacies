@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { supabase } from '@/lib/supabase';
-import { ShoppingCart, Menu, X, Globe, LogIn, Heart, User, ChevronDown, LogOut, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, Menu, X, Globe, LogIn, Heart, User, ChevronDown, LogOut, ShoppingBag, Package, ClipboardList } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Navbar() {
@@ -64,6 +64,22 @@ export default function Navbar() {
         <p className="text-xs text-slate-400">{isRtl ? 'مرحباً بك' : 'Welcome back'}</p>
         <p className="text-sm font-bold text-slate-800 truncate">{user?.email}</p>
       </div>
+      <Link
+        href="/account"
+        onClick={() => setAccountOpen(false)}
+        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors"
+      >
+        <User size={16} />
+        <span>{t('myAccount')}</span>
+      </Link>
+      <Link
+        href="/orders"
+        onClick={() => setAccountOpen(false)}
+        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors"
+      >
+        <ClipboardList size={16} />
+        <span>{t('myOrders')}</span>
+      </Link>
       <Link
         href="/wishlist"
         onClick={() => setAccountOpen(false)}
@@ -271,6 +287,22 @@ export default function Navbar() {
                       <p className="text-sm font-bold text-slate-800 truncate">{user?.email}</p>
                     </div>
                   </div>
+                  <Link
+                    href="/account"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
+                  >
+                    <User size={18} />
+                    <span>{t('myAccount')}</span>
+                  </Link>
+                  <Link
+                    href="/orders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
+                  >
+                    <ClipboardList size={18} />
+                    <span>{t('myOrders')}</span>
+                  </Link>
                   <Link
                     href="/wishlist"
                     onClick={() => setMobileMenuOpen(false)}

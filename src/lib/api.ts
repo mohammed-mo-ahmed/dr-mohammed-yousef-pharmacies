@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Product, Category, Order, Customer, Offer } from '@/types';
+import { Product, Category, Order, Customer, Offer, Profile } from '@/types';
 
 // ==========================================
 // CATEGORIES CRUD
@@ -345,7 +345,7 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function createOrder(
-  order: Omit<Order, 'id' | 'created_at' | 'status' | 'order_items'>,
+  order: Omit<Order, 'id' | 'created_at' | 'status' | 'order_items'> & { user_id?: string },
   items: { product_id: string; quantity: number; price: number }[]
 ): Promise<Order | null> {
   // 1. Insert into orders table
@@ -360,6 +360,7 @@ export async function createOrder(
         delivery_method: order.delivery_method,
         status: 'pending',
         total: order.total,
+        user_id: order.user_id || null,
       },
     ])
     .select()
@@ -525,6 +526,74 @@ export async function getWishlistIds(userId: string): Promise<Set<string>> {
   }
 
   return new Set((data || []).map((item: { product_id: string }) => item.product_id));
+}
+
+// ==========================================
+// PROFILES CRUD
+// ==========================================
+
+export async function getProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+  return data as Profile;
+}
+
+export async function upsertProfile(profile: Omit<Profile, 'id' | 'created_at' | 'updated_at'>): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        user_id: profile.user_id,
+        full_name: profile.full_name,
+        phone: profile.phone,
+        avatar_url: profile.avatar_url,
+        address: profile.address,
+        gender: profile.gender,
+        age: profile.age,
+      },
+      { onConflict: 'user_id' }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error upserting profile:', error);
+    return null;
+  }
+  return data as Profile;
+}
+
+// ==========================================
+// ORDERS BY USER
+// ==========================================
+
+export async function getOrdersByUser(userId: string): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, order_items(*, products(*))')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching user orders:', error);
+    return [];
+  }
+
+  return (data || []).map((ord: Record<string, unknown>) => ({
+    ...ord,
+    order_items: ((ord as { order_items?: Array<Record<string, unknown>> }).order_items || []).map((item: Record<string, unknown>) => ({
+      ...item,
+      product: (item as { products?: unknown }).products,
+    })),
+  })) as Order[];
 }
 
 // ==========================================
