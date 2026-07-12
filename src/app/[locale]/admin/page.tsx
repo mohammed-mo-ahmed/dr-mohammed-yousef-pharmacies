@@ -238,8 +238,8 @@ export default function AdminDashboardPage() {
     loadAllData();
   };
 
-  const handleRemoveProductOffer = async (productId: string) => {
-    await updateProduct(productId, { old_price: undefined });
+  const handleRemoveProductOffer = async (productId: string, originalPrice: number) => {
+    await updateProduct(productId, { price: originalPrice, old_price: undefined });
     loadAllData();
   };
 

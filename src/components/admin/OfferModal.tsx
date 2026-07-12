@@ -11,7 +11,7 @@ interface OfferModalProps {
   product: Product | null;
   isRtl: boolean;
   onSave: (productId: string, newPrice: number, oldPrice: number) => Promise<void>;
-  onRemove: (productId: string) => Promise<void>;
+  onRemove: (productId: string, originalPrice: number) => Promise<void>;
 }
 
 export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, onRemove }: OfferModalProps) {
@@ -59,7 +59,7 @@ export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, on
   const handleRemove = async () => {
     if (!product) return;
     setSaving(true);
-    await onRemove(product.id);
+    await onRemove(product.id, originalPrice);
     setSaving(false);
     onClose();
   };
