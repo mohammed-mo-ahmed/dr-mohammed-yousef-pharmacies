@@ -104,6 +104,21 @@ CREATE POLICY "Allow auth read/write on orders" ON orders FOR ALL TO authenticat
 CREATE POLICY "Allow public insert on order_items" ON order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow auth read/write on order_items" ON order_items FOR ALL TO authenticated USING (true);
 
+-- 7. WISHLISTS TABLE
+CREATE TABLE wishlists (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    UNIQUE(user_id, product_id)
+);
+
+ALTER TABLE wishlists ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow users to read their own wishlists" ON wishlists FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Allow users to insert their own wishlists" ON wishlists FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Allow users to delete their own wishlists" ON wishlists FOR DELETE USING (auth.uid() = user_id);
+
 -- Offers Policies
 CREATE POLICY "Allow public read on offers" ON offers FOR SELECT USING (true);
 CREATE POLICY "Allow auth write on offers" ON offers FOR ALL TO authenticated USING (true);

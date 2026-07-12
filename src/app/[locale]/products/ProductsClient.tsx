@@ -26,6 +26,9 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 48;
 
   // Active filters from URL search params
   const activeCategory = searchParams.get('category') || 'all';
@@ -48,18 +51,22 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
   useEffect(() => {
     async function loadProducts() {
       setLoading(true);
-      const data = await getProducts({
+      const { products: prods, total } = await getProducts({
         categoryId: activeCategory,
         search: activeSearch,
         sort: activeSort,
+        page: currentPage,
+        limit: PRODUCTS_PER_PAGE,
       });
-      setProducts(data);
+      setProducts(prods);
+      setTotalProducts(total);
       setLoading(false);
     }
     loadProducts();
-  }, [activeCategory, activeSearch, activeSort]);
+  }, [activeCategory, activeSearch, activeSort, currentPage]);
 
   const updateFilters = (newParams: { category?: string; search?: string; sort?: string }) => {
+    setCurrentPage(1);
     const params = new URLSearchParams(searchParams.toString());
     
     if (newParams.category !== undefined) {
@@ -251,6 +258,7 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
               </button>
             </div>
           ) : (
+            <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {products.map((prod) => (
                 <ProductCard
@@ -262,6 +270,30 @@ export default function ProductsClient({ locale }: ProductsClientProps) {
                 />
               ))}
             </div>
+
+            {/* Pagination */}
+            {totalProducts > PRODUCTS_PER_PAGE && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-cairo"
+                >
+                  {isRtl ? 'السابق' : 'Previous'}
+                </button>
+                <span className="px-4 py-2 text-sm font-bold text-slate-600 font-cairo">
+                  {isRtl ? `صفحة ${currentPage} من ${Math.ceil(totalProducts / PRODUCTS_PER_PAGE)}` : `Page ${currentPage} of ${Math.ceil(totalProducts / PRODUCTS_PER_PAGE)}`}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalProducts / PRODUCTS_PER_PAGE), p + 1))}
+                  disabled={currentPage >= Math.ceil(totalProducts / PRODUCTS_PER_PAGE)}
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-cairo"
+                >
+                  {isRtl ? 'التالي' : 'Next'}
+                </button>
+              </div>
+            )}
+            </>
           )}
         </main>
 

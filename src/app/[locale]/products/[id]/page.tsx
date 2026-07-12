@@ -8,7 +8,8 @@ import ProductCard from '@/components/ProductCard';
 import { getProductById, getProducts } from '@/lib/api';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
-import { Plus, Minus, ShoppingBag, ChevronLeft, ChevronRight, CornerDownLeft, ShieldCheck, Truck } from 'lucide-react';
+import { useWishlist } from '@/context/WishlistContext';
+import { Plus, Minus, ShoppingBag, ChevronLeft, ChevronRight, CornerDownLeft, ShieldCheck, Truck, Heart } from 'lucide-react';
 import Image from 'next/image';
 
 export default function ProductDetailPage() {
@@ -17,6 +18,7 @@ export default function ProductDetailPage() {
   const locale = useLocale();
   const router = useRouter();
   const { addToCart } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
   const isRtl = locale === 'ar';
 
   const productId = params.id as string;
@@ -37,7 +39,7 @@ export default function ProductDetailPage() {
         setProduct(prod);
         // Fetch related products in same category (excluding current)
         if (prod.category_id) {
-          const related = await getProducts({ categoryId: prod.category_id });
+          const { products: related } = await getProducts({ categoryId: prod.category_id, limit: 8 });
           setRelatedProducts(related.filter((p) => p.id !== prod.id).slice(0, 4));
         }
       }
@@ -178,6 +180,59 @@ export default function ProductDetailPage() {
                 </p>
               </div>
             )}
+
+            {/* Drug Info */}
+            {(product.company || product.active_ingredients || product.form || product.barcode || product.size) && (
+              <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <h3 className="font-bold text-slate-700 text-sm mb-3 font-cairo">
+                  {isRtl ? 'معلومات الدواء' : 'Drug Information'}
+                </h3>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {product.company && (
+                    <div>
+                      <span className="text-slate-400 font-cairo">{isRtl ? 'الشركة' : 'Company'}:</span>
+                      <span className="font-bold text-slate-700 ml-1 font-cairo">{product.company}</span>
+                    </div>
+                  )}
+                  {product.form && (
+                    <div>
+                      <span className="text-slate-400 font-cairo">{isRtl ? 'الشكل' : 'Form'}:</span>
+                      <span className="font-bold text-slate-700 ml-1 font-cairo">{product.form}</span>
+                    </div>
+                  )}
+                  {product.size && (
+                    <div>
+                      <span className="text-slate-400 font-cairo">{isRtl ? 'الحجم' : 'Size'}:</span>
+                      <span className="font-bold text-slate-700 ml-1 font-cairo">{product.size}</span>
+                    </div>
+                  )}
+                  {product.barcode && (
+                    <div>
+                      <span className="text-slate-400 font-cairo">{isRtl ? 'الباركود' : 'Barcode'}:</span>
+                      <span className="font-bold text-slate-700 ml-1 font-mono">{product.barcode}</span>
+                    </div>
+                  )}
+                </div>
+                {product.active_ingredients && (
+                  <div className="mt-3 text-xs">
+                    <span className="text-slate-400 font-cairo">{isRtl ? 'المكونات الفعالة' : 'Active Ingredients'}:</span>
+                    <span className="font-bold text-slate-700 ml-1 font-cairo">{product.active_ingredients}</span>
+                  </div>
+                )}
+                {/* Warnings */}
+                {(product.warning_pregnancy || product.warning_lactation || product.warning_diabetes || product.warning_high_bp || product.warning_kidney || product.warning_liver || product.warning_heart) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {product.warning_pregnancy && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'الحمل' : 'Pregnancy'}</span>}
+                    {product.warning_lactation && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'الرضاعة' : 'Lactation'}</span>}
+                    {product.warning_diabetes && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'السكري' : 'Diabetes'}</span>}
+                    {product.warning_high_bp && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'ضغط الدم' : 'High BP'}</span>}
+                    {product.warning_kidney && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'الكلى' : 'Kidney'}</span>}
+                    {product.warning_liver && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'الكبد' : 'Liver'}</span>}
+                    {product.warning_heart && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{isRtl ? 'القلب' : 'Heart'}</span>}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Row */}
@@ -211,6 +266,19 @@ export default function ProductDetailPage() {
                 >
                   <ShoppingBag size={20} />
                   <span>{t('common.addToCart')}</span>
+                </button>
+
+                {/* Wishlist button */}
+                <button
+                  onClick={() => toggleWishlist(product)}
+                  className={`p-[18px] rounded-xl border-2 transition-all duration-200 ${
+                    isWishlisted(product.id)
+                      ? 'bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100'
+                      : 'bg-white border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-500 hover:bg-rose-50'
+                  }`}
+                  aria-label={t('common.wishlist')}
+                >
+                  <Heart size={20} className={isWishlisted(product.id) ? 'fill-rose-500' : ''} />
                 </button>
               </div>
             ) : (

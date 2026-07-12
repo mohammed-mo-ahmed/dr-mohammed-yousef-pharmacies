@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { Product } from '@/types';
+import { useWishlist } from '@/context/WishlistContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface OfferCardProps {
   product: Product;
@@ -15,12 +17,36 @@ interface OfferCardProps {
 
 export default function OfferCard({ product, isRtl, onAddToCart, t }: OfferCardProps) {
   const [imgErr, setImgErr] = useState(false);
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const wishlisted = isWishlisted(product.id);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) return;
+    toggleWishlist(product);
+  };
 
   return (
     <div className="group bg-white rounded-2xl border border-slate-100 hover:shadow-xl hover:border-amber-200 hover:scale-[1.02] transition-all duration-500 overflow-hidden flex flex-col justify-between relative h-full">
       <div className="absolute top-3 start-3 z-10 px-2.5 py-0.5 bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full text-[10px] font-extrabold uppercase shadow-md">
         {isRtl ? 'عرض' : 'Offer'}
       </div>
+
+      {/* Wishlist heart button */}
+      {isAuthenticated && (
+        <button
+          onClick={handleWishlistToggle}
+          className="absolute top-3 end-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white hover:scale-110 transition-all duration-200"
+          aria-label={t('wishlist')}
+        >
+          <Heart
+            size={14}
+            className={wishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}
+          />
+        </button>
+      )}
 
       <Link href={`/products/${product.id}`} className="block w-full aspect-square relative bg-slate-50 overflow-hidden">
         <Image

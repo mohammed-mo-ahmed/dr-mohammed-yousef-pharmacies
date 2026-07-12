@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { Product } from '@/types';
+import { useWishlist } from '@/context/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +18,14 @@ interface ProductCardProps {
 export default function ProductCard({ product, isRtl, t, onAddToCart, variant = 'default' }: ProductCardProps) {
   const [imgErr, setImgErr] = useState(false);
   const isDefault = variant === 'default';
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = isWishlisted(product.id);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
+  };
 
   return (
     <div className="group bg-white rounded-2xl border border-slate-100 hover:shadow-xl hover:border-slate-200 hover:scale-[1.02] transition-all duration-500 overflow-hidden flex flex-col justify-between h-full">
@@ -42,6 +51,18 @@ export default function ProductCard({ product, isRtl, t, onAddToCart, variant = 
             </span>
           )}
         </div>
+
+        {/* Wishlist heart button */}
+        <button
+          onClick={handleWishlistToggle}
+          className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white hover:scale-110 transition-all duration-200`}
+          aria-label={t('wishlist')}
+        >
+          <Heart
+            size={isDefault ? 16 : 14}
+            className={wishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}
+          />
+        </button>
       </Link>
 
       <div className={`flex-grow flex flex-col justify-between ${isDefault ? 'p-4' : 'p-3.5'}`}>

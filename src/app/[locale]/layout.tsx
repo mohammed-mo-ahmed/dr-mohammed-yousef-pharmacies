@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { Cairo, Outfit } from 'next/font/google';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { routing } from '@/i18n/routing';
@@ -81,6 +82,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages} locale={locale}>
           <AuthProvider>
           <CartProvider>
+          <WishlistProvider>
             {/* Navbar is fixed at the top (height 80px / 5rem) */}
             <Navbar />
             
@@ -91,6 +93,7 @@ export default async function LocaleLayout({
             
             {/* Footer */}
             <Footer />
+          </WishlistProvider>
           </CartProvider>
           </AuthProvider>
         </NextIntlClientProvider>

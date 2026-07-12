@@ -73,7 +73,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Mail size={16} className="text-teal-500" />
-                <span>info@dr-yousef-pharmacy.com</span>
+                <span>moyousefpharmacies@gmail.com</span>
               </li>
               <li className="flex items-center gap-2">
                 <Clock size={16} className="text-teal-500" />

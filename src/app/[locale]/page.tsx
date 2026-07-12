@@ -36,16 +36,16 @@ export default function HomePage() {
   useEffect(() => {
     async function loadHomeData() {
       try {
-        const [cats, latest, best, offList] = await Promise.all([
+        const [cats, { products: latestProds }, { products: bestProds }, offList] = await Promise.all([
           getCategories(),
-          getProducts({ isLatest: true }),
-          getProducts({ isBestSeller: true }),
+          getProducts({ isLatest: true, limit: 8 }),
+          getProducts({ isBestSeller: true, limit: 8 }),
           getOffers(),
         ]);
 
         setCategories(cats);
-        setLatestProducts(latest);
-        setBestSellingProducts(best);
+        setLatestProducts(latestProds);
+        setBestSellingProducts(bestProds);
         setOffers(offList);
       } catch (err) {
         console.error('Error loading homepage data:', err);
@@ -185,6 +185,39 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* CATEGORIES */}
+      {categories.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-cairo tracking-tight">
+              {t('categories.title')}
+            </h2>
+            <p className="text-slate-500 text-sm mt-2 font-cairo">
+              {isRtl ? 'تصفح المنتجات حسب الفئة' : 'Browse products by category'}
+            </p>
+            <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full"></div>
+          </div>
+
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-5">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.id}`}
+                className="block group bg-white hover:bg-teal-50 rounded-2xl p-4 md:p-6 text-center border border-slate-100 hover:border-teal-200 hover:shadow-lg transition-all duration-300"
+              >
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-teal-100 transition-all duration-300 text-teal-600">
+                  <ShoppingBag size={24} className="md:hidden" />
+                  <ShoppingBag size={28} className="hidden md:block" />
+                </div>
+                <h3 className="font-bold text-slate-800 text-xs md:text-base font-cairo line-clamp-2">
+                  {isRtl ? cat.name_ar : cat.name_en}
+                </h3>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* FEATURED PRODUCTS */}
       <section className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -255,38 +288,6 @@ export default function HomePage() {
 
       {/* CUSTOMER REVIEWS */}
       <CustomerReviews />
-
-      {/* CATEGORIES */}
-      {categories.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-cairo tracking-tight">
-              {t('categories.title')}
-            </h2>
-            <p className="text-slate-500 text-sm mt-2 font-cairo">
-              {isRtl ? 'تصفح المنتجات حسب الفئة' : 'Browse products by category'}
-            </p>
-            <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full"></div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/products?category=${cat.id}`}
-                className="block group bg-white hover:bg-teal-50 rounded-2xl p-6 text-center border border-slate-100 hover:border-teal-200 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:bg-teal-100 transition-all duration-300 text-teal-600">
-                  <ShoppingBag size={28} />
-                </div>
-                <h3 className="font-bold text-slate-800 text-sm md:text-base font-cairo line-clamp-2">
-                  {isRtl ? cat.name_ar : cat.name_en}
-                </h3>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* BEST-SELLING PRODUCTS */}
       {bestSellingProducts.length > 0 && (

@@ -64,14 +64,26 @@ export async function deleteCategory(id: string): Promise<boolean> {
 // PRODUCTS CRUD
 // ==========================================
 
+export type PaginatedProducts = {
+  products: Product[];
+  total: number;
+};
+
 export async function getProducts(filters?: {
   categoryId?: string;
   search?: string;
   sort?: string;
   isLatest?: boolean;
   isBestSeller?: boolean;
-}): Promise<Product[]> {
-  let query = supabase.from('products').select('*, categories(*)');
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedProducts> {
+  const page = filters?.page ?? 1;
+  const limit = filters?.limit ?? 50;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  let query = supabase.from('products').select('*, categories(*)', { count: 'exact' });
 
   if (filters?.categoryId && filters.categoryId !== 'all') {
     query = query.eq('category_id', filters.categoryId);
@@ -86,12 +98,10 @@ export async function getProducts(filters?: {
   }
 
   if (filters?.search) {
-    // Escape LIKE special characters to prevent unexpected pattern matching
     const safe = filters.search.replace(/[%_]/g, '\\$&');
-    query = query.or(`name_ar.ilike.%${safe}%,name_en.ilike.%${safe}%`);
+    query = query.or(`name_ar.ilike.%${safe}%,name_en.ilike.%${safe}%,barcode.ilike.%${safe}%`);
   }
 
-  // Sorting
   if (filters?.sort) {
     if (filters.sort === 'price-asc') {
       query = query.order('price', { ascending: true });
@@ -106,18 +116,21 @@ export async function getProducts(filters?: {
     query = query.order('created_at', { ascending: false });
   }
 
-  const { data, error } = await query;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
 
   if (error) {
     console.error('Error fetching products:', error);
-    return [];
+    return { products: [], total: 0 };
   }
 
-  // Map category relation if fetched
-  return (data || []).map((prod) => ({
+  const products = (data || []).map((prod) => ({
     ...prod,
     category: (prod as { categories?: unknown }).categories,
   })) as Product[];
+
+  return { products, total: count ?? 0 };
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -444,6 +457,74 @@ export async function deleteOrder(id: string): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+// ==========================================
+// WISHLIST CRUD
+// ==========================================
+
+export async function getWishlist(userId: string): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('wishlists')
+    .select('product_id, products(*)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching wishlist:', error);
+    return [];
+  }
+
+  return (data || [])
+    .map((item: Record<string, unknown>) => {
+      const products = item.products as Record<string, unknown> | null;
+      if (!products) return null;
+      return {
+        ...products,
+        category: products.categories,
+      } as Product;
+    })
+    .filter(Boolean) as Product[];
+}
+
+export async function addToWishlist(userId: string, productId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('wishlists')
+    .insert([{ user_id: userId, product_id: productId }]);
+
+  if (error) {
+    console.error('Error adding to wishlist:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function removeFromWishlist(userId: string, productId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('wishlists')
+    .delete()
+    .eq('user_id', userId)
+    .eq('product_id', productId);
+
+  if (error) {
+    console.error('Error removing from wishlist:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function getWishlistIds(userId: string): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('wishlists')
+    .select('product_id')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching wishlist IDs:', error);
+    return new Set();
+  }
+
+  return new Set((data || []).map((item: { product_id: string }) => item.product_id));
 }
 
 // ==========================================

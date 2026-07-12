@@ -37,6 +37,18 @@ interface ProductFormModalProps {
   prodIsLatest: boolean;
   setProdIsLatest: (v: boolean) => void;
 
+  // Drug-specific fields
+  prodActiveIngredients?: string;
+  setProdActiveIngredients?: (v: string) => void;
+  prodCompany?: string;
+  setProdCompany?: (v: string) => void;
+  prodBarcode?: string;
+  setProdBarcode?: (v: string) => void;
+  prodForm?: string;
+  setProdForm?: (v: string) => void;
+  prodSize?: string;
+  setProdSize?: (v: string) => void;
+
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -60,6 +72,11 @@ export default function ProductFormModal({
   prodUsageEn, setProdUsageEn,
   prodIsBest, setProdIsBest,
   prodIsLatest, setProdIsLatest,
+  prodActiveIngredients, setProdActiveIngredients,
+  prodCompany, setProdCompany,
+  prodBarcode, setProdBarcode,
+  prodForm, setProdForm,
+  prodSize, setProdSize,
   onSubmit,
 }: ProductFormModalProps) {
   if (!isOpen) return null;
@@ -215,6 +232,47 @@ export default function ProductFormModal({
               {isRtl ? 'منتج جديد (أحدث المضاف)' : 'New Addition'}
             </label>
           </div>
+
+          {/* Drug Information Section */}
+          {(setProdCompany || setProdBarcode || setProdForm) && (
+            <div className="sm:col-span-2 mt-4 border-t border-slate-100 pt-4">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">
+                {isRtl ? 'معلومات الدواء' : 'Drug Information'}
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {setProdCompany && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-500">{isRtl ? 'الشركة' : 'Company'}</label>
+                    <input type="text" value={prodCompany || ''} onChange={(e) => setProdCompany(e.target.value)} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white" />
+                  </div>
+                )}
+                {setProdBarcode && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-500">{isRtl ? 'الباركود' : 'Barcode'}</label>
+                    <input type="text" value={prodBarcode || ''} onChange={(e) => setProdBarcode(e.target.value)} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white text-left" />
+                  </div>
+                )}
+                {setProdForm && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-500">{isRtl ? 'الشكل' : 'Form'}</label>
+                    <input type="text" value={prodForm || ''} onChange={(e) => setProdForm(e.target.value)} placeholder="tablet, syrup, cream..." className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white text-left" />
+                  </div>
+                )}
+                {setProdSize && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-slate-500">{isRtl ? 'الحجم' : 'Size'}</label>
+                    <input type="text" value={prodSize || ''} onChange={(e) => setProdSize(e.target.value)} placeholder="100 ml, 30 tablets..." className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white text-left" />
+                  </div>
+                )}
+                {setProdActiveIngredients && (
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-xs font-semibold text-slate-500">{isRtl ? 'المكونات الفعالة' : 'Active Ingredients'}</label>
+                    <input type="text" value={prodActiveIngredients || ''} onChange={(e) => setProdActiveIngredients(e.target.value)} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white text-left" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="sm:col-span-2 mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
             <button

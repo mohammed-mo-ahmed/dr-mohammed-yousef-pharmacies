@@ -4,8 +4,11 @@
     "search": "Search...",
     "searchPlaceholder": "Search for a product, medicine, or cosmetics...",
     "cart": "Shopping Cart",
+    "wishlist": "Wishlist",
     "login": "Login",
     "logout": "Logout",
+    "myAccount": "My Account",
+    "myOrders": "My Orders",
     "registerNow": "Register Now",
     "home": "Home",
     "products": "Products",
@@ -138,5 +141,12 @@
     "badge": "Special Offers",
     "text": "Get up to 30% off on Skin and Hair Care products!",
     "cta": "Shop Now"
+  },
+  "wishlist": {
+    "title": "My Wishlist",
+    "empty": "Your wishlist is empty.",
+    "loginToView": "Login to see your wishlist",
+    "added": "Added to wishlist",
+    "removed": "Removed from wishlist"
   }
 }

@@ -92,9 +92,9 @@ export default function AdminDashboardPage() {
   const loadAllData = async () => {
     setLoadingData(true);
     try {
-      const [cats, prods, ords, custs, offs] = await Promise.all([
+      const [cats, { products: prods }, ords, custs, offs] = await Promise.all([
         getCategories(),
-        getProducts(),
+        getProducts({ limit: 50 }),
         getOrders(),
         getCustomers(),
         getOffers(),

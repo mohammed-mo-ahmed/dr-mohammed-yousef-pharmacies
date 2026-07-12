@@ -21,7 +21,27 @@ export interface Product {
   is_best_seller: boolean;
   is_latest: boolean;
   created_at?: string;
-  category?: Category; // Nested relation
+  category?: Category;
+  // Drug database fields
+  active_ingredients?: string;
+  company?: string;
+  barcode?: string;
+  form?: string;
+  size?: string;
+  old_price?: number;
+  availability?: string;
+  drug_category?: string;
+  uses_summary_ar?: string;
+  uses_summary_en?: string;
+  warnings_summary_ar?: string;
+  warnings_summary_en?: string;
+  warning_high_bp?: boolean;
+  warning_diabetes?: boolean;
+  warning_pregnancy?: boolean;
+  warning_lactation?: boolean;
+  warning_kidney?: boolean;
+  warning_liver?: boolean;
+  warning_heart?: boolean;
 }
 
 export interface Customer {

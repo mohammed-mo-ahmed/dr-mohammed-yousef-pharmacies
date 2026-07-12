@@ -1,18 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { createOrder } from '@/lib/api';
-import { Truck, Store, CreditCard, ShoppingBag, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Truck, Store, CreditCard, ShoppingBag, CheckCircle, AlertTriangle, LogIn } from 'lucide-react';
 export default function CheckoutPage() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const isRtl = locale === 'ar';
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const { cart, cartTotal, clearCart } = useCart();
+
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        router.push('/login?redirect=/checkout');
+      } else {
+        setAuthChecked(true);
+      }
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  if (authLoading || !authChecked) {
+    return (
+      <div className="min-h-[500px] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   // Form states
   const [fullName, setFullName] = useState('');
