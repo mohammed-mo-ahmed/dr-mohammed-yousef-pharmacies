@@ -90,16 +90,6 @@ export interface Profile {
   updated_at?: string;
 }
 
-export interface Offer {
-  id: string;
-  title_ar: string;
-  title_en: string;
-  discount_percentage: number;
-  image_url: string;
-  active: boolean;
-  created_at?: string;
-}
-
 export interface CartItem {
   product: Product;
   quantity: number;

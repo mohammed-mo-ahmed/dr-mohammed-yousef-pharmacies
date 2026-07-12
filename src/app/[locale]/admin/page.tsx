@@ -14,17 +14,13 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  getOffers,
-  createOffer,
-  updateOffer,
-  deleteOffer,
   getCustomers,
   getOrders,
   updateOrderStatus,
   deleteOrder,
   seedDatabase,
 } from '@/lib/api';
-import { Product, Category, Order, Customer, Offer } from '@/types';
+import { Product, Category, Order, Customer } from '@/types';
 import { RefreshCw, ShieldAlert } from 'lucide-react';
 
 import Sidebar from '@/components/admin/Sidebar';
@@ -36,7 +32,7 @@ import CustomersTab from '@/components/admin/CustomersTab';
 import InventoryTab from '@/components/admin/InventoryTab';
 import OffersTab from '@/components/admin/OffersTab';
 import ProductFormModal from '@/components/admin/ProductFormModal';
-import OfferFormModal from '@/components/admin/OfferFormModal';
+import AddOfferModal from '@/components/admin/AddOfferModal';
 import OfferModal from '@/components/admin/OfferModal';
 
 type TabType = 'dashboard' | 'products' | 'categories' | 'orders' | 'customers' | 'inventory' | 'offers';
@@ -58,11 +54,10 @@ export default function AdminDashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
   // Modals / Form States
-  const [activeModal, setActiveModal] = useState<'product' | 'category' | 'offer' | null>(null);
+  const [activeModal, setActiveModal] = useState<'product' | 'category' | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
 
   // Product Form
@@ -84,31 +79,27 @@ export default function AdminDashboardPage() {
   const [catNameEn, setCatNameEn] = useState('');
   const [catSlug, setCatSlug] = useState('');
 
-  // Offer Form
-  const [offTitleAr, setOffTitleAr] = useState('');
-  const [offTitleEn, setOffTitleEn] = useState('');
-  const [offPercent, setOffPercent] = useState(0);
-  const [offImage, setOffImage] = useState('');
-
-  // Product Offer Modal
+  // Offer Modal (from ProductsTab % icon)
   const [offerModalOpen, setOfferModalOpen] = useState(false);
   const [offerProduct, setOfferProduct] = useState<Product | null>(null);
+
+  // Add/Edit Offer Modal (from OffersTab)
+  const [addOfferModalOpen, setAddOfferModalOpen] = useState(false);
+  const [addOfferEditProduct, setAddOfferEditProduct] = useState<Product | null>(null);
 
   const loadAllData = async () => {
     setLoadingData(true);
     try {
-      const [cats, { products: prods }, ords, custs, offs] = await Promise.all([
+      const [cats, { products: prods }, ords, custs] = await Promise.all([
         getCategories(),
-        getProducts({ limit: 50 }),
+        getProducts({ limit: 10000 }),
         getOrders(),
         getCustomers(),
-        getOffers(),
       ]);
       setCategories(cats);
       setProducts(prods);
       setOrders(ords);
       setCustomers(custs);
-      setOffers(offs);
     } catch (e) {
       console.error('Error loading admin data:', e);
     } finally {
@@ -224,6 +215,9 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // ==========================================
+  // PRODUCT OFFER (from ProductsTab % icon)
+  // ==========================================
   const openOfferModal = (prod: Product) => {
     setOfferProduct(prod);
     setOfferModalOpen(true);
@@ -235,6 +229,29 @@ export default function AdminDashboardPage() {
   };
 
   const handleRemoveProductOffer = async (productId: string) => {
+    await updateProduct(productId, { offer_price: null });
+    loadAllData();
+  };
+
+  // ==========================================
+  // OFFERS TAB ACTIONS
+  // ==========================================
+  const openAddOffer = () => {
+    setAddOfferEditProduct(null);
+    setAddOfferModalOpen(true);
+  };
+
+  const openEditOffer = (product: Product) => {
+    setAddOfferEditProduct(product);
+    setAddOfferModalOpen(true);
+  };
+
+  const handleSaveOfferFromTab = async (productId: string, offerPrice: number) => {
+    await updateProduct(productId, { offer_price: offerPrice });
+    loadAllData();
+  };
+
+  const handleRemoveOfferFromTab = async (productId: string) => {
     await updateProduct(productId, { offer_price: null });
     loadAllData();
   };
@@ -282,56 +299,6 @@ export default function AdminDashboardPage() {
   const handleDeleteCategory = async (id: string) => {
     if (confirm(isRtl ? 'هل أنت متأكد من حذف هذه الفئة؟' : 'Are you sure you want to delete this category?')) {
       const ok = await deleteCategory(id);
-      if (ok) loadAllData();
-    }
-  };
-
-  // ==========================================
-  // OFFERS ACTIONS
-  // ==========================================
-  const openAddOffer = () => {
-    setEditId(null);
-    setOffTitleAr('');
-    setOffTitleEn('');
-    setOffPercent(0);
-    setOffImage('');
-    setActiveModal('offer');
-  };
-
-  const openEditOffer = (offer: Offer) => {
-    setEditId(offer.id);
-    setOffTitleAr(offer.title_ar);
-    setOffTitleEn(offer.title_en);
-    setOffPercent(offer.discount_percentage);
-    setOffImage(offer.image_url);
-    setActiveModal('offer');
-  };
-
-  const handleSaveOffer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload = {
-      title_ar: offTitleAr,
-      title_en: offTitleEn,
-      discount_percentage: Number(offPercent),
-      image_url: offImage,
-      active: true,
-    };
-
-    let result;
-    if (editId) {
-      result = await updateOffer(editId, payload);
-    } else {
-      result = await createOffer(payload);
-    }
-    if (result) {
-      setActiveModal(null);
-      loadAllData();
-    }
-  };
-
-  const handleDeleteOffer = async (id: string) => {
-    if (confirm(isRtl ? 'هل تريد حذف هذا العرض؟' : 'Delete this offer?')) {
-      const ok = await deleteOffer(id);
       if (ok) loadAllData();
     }
   };
@@ -530,12 +497,13 @@ export default function AdminDashboardPage() {
 
             {activeTab === 'offers' && (
               <OffersTab
-                offers={offers}
+                products={products}
                 isRtl={isRtl}
+                t={t}
                 common={common}
                 openAddOffer={openAddOffer}
                 openEditOffer={openEditOffer}
-                handleDeleteOffer={handleDeleteOffer}
+                handleRemoveOffer={handleRemoveOfferFromTab}
               />
             )}
           </>
@@ -648,21 +616,14 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <OfferFormModal
-        isOpen={activeModal === 'offer'}
-        onClose={() => setActiveModal(null)}
-        editId={editId}
+      <AddOfferModal
+        isOpen={addOfferModalOpen}
+        onClose={() => { setAddOfferModalOpen(false); setAddOfferEditProduct(null); }}
+        products={products}
+        editProduct={addOfferEditProduct}
         isRtl={isRtl}
-        common={common}
-        offTitleAr={offTitleAr}
-        setOffTitleAr={setOffTitleAr}
-        offTitleEn={offTitleEn}
-        setOffTitleEn={setOffTitleEn}
-        offPercent={offPercent}
-        setOffPercent={setOffPercent}
-        offImage={offImage}
-        setOffImage={setOffImage}
-        onSubmit={handleSaveOffer}
+        onSave={handleSaveOfferFromTab}
+        onRemove={handleRemoveOfferFromTab}
       />
 
       <OfferModal
