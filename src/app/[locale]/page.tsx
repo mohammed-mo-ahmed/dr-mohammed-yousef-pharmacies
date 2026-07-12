@@ -139,7 +139,7 @@ export default function HomePage() {
 
       <div className="relative bg-white">
 
-      {/* OFFERS — Horizontal scroll like reviews */}
+      {/* OFFERS — Horizontal infinite scroll */}
       {bestSellingProducts.length > 0 && (
         <section className="bg-slate-50 py-16 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,9 +155,12 @@ export default function HomePage() {
           </div>
 
           <InfiniteCarousel isRtl={isRtl} speed={18}>
-            {bestSellingProducts.map((prod) => (
-              <OfferCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} />
-            ))}
+            {bestSellingProducts.map((prod, i) => {
+              const disc = offers[i % Math.max(offers.length, 1)]?.discount_percentage || [10, 15, 20, 25, 30][i % 5];
+              return (
+                <OfferCard key={prod.id} product={prod} discount={disc} isRtl={isRtl} t={t} onAddToCart={addToCart} />
+              );
+            })}
           </InfiniteCarousel>
 
           <div className="text-center mt-10">
