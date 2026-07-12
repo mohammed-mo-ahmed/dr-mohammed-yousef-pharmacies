@@ -125,7 +125,7 @@ export async function getProducts(filters?: {
     return { products: [], total: 0 };
   }
 
-  const products = (data || []).map((prod) => ({
+  const products = (data || []).map((prod: Record<string, unknown>) => ({
     ...prod,
     category: (prod as { categories?: unknown }).categories,
   })) as Product[];
@@ -559,7 +559,7 @@ export async function seedDatabase(): Promise<{ success: boolean; message: strin
 
     // Map slug to UUID
     const catMap = new Map<string, string>();
-    insertedCats.forEach((c) => catMap.set(c.slug, c.id));
+    insertedCats.forEach((c: { slug: string; id: string }) => catMap.set(c.slug, c.id));
 
     // 3. Insert Products
     const productsToInsert = [

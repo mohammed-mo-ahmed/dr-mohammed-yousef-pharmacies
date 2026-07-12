@@ -124,7 +124,7 @@ function RegisterForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}${searchParams?.get('redirect') || '/'}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(searchParams?.get('redirect') || '/')}`,
         },
       });
       if (error) {
