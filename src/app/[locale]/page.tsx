@@ -139,51 +139,38 @@ export default function HomePage() {
 
       <div className="relative bg-white">
 
-      {/* OFFERS CAROUSEL */}
-      <section className="bg-slate-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {bestSellingProducts.length > 0 ? (
-            <>
-              <div className="text-center mb-12">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-                  {isRtl ? 'عروض خاصة' : 'Special Offers'}
-                </h2>
-                <p className="text-slate-500 text-sm mt-2 font-cairo">
-                  {isRtl ? 'خصومات مميزة على منتجات مختارة' : 'Exclusive discounts on selected products'}
-                </p>
-                <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
-              </div>
-
-              <InfiniteCarousel isRtl={isRtl} speed={18}>
-                {bestSellingProducts.map((prod) => (
-                  <OfferCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} />
-                ))}
-              </InfiniteCarousel>
-
-              <div className="text-center mt-12">
-                <Link
-                  href="/offers"
-                  className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
-                >
-                  <span>{isRtl ? 'عرض الكل' : 'View More'}</span>
-                  {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                </Link>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 animate-fadeIn">
-              <div className="bg-gradient-to-b from-teal-50/60 to-white rounded-2xl p-10 border border-slate-100 shadow-sm text-center">
-                <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ShoppingBag size={32} className="text-teal-300" />
-                </div>
-                <p className="text-slate-400 font-cairo text-sm">
-                  {isRtl ? 'سيتم إضافة المنتجات قريبًا' : 'Products coming soon'}
-                </p>
-              </div>
+      {/* OFFERS — Horizontal scroll like reviews */}
+      {bestSellingProducts.length > 0 && (
+        <section className="bg-slate-50 py-16 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
+                {isRtl ? 'عروض خاصة' : 'Special Offers'}
+              </h2>
+              <p className="text-slate-500 text-sm mt-2 font-cairo">
+                {isRtl ? 'خصومات مميزة على منتجات مختارة' : 'Exclusive discounts on selected products'}
+              </p>
+              <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+
+          <InfiniteCarousel isRtl={isRtl} speed={18}>
+            {bestSellingProducts.map((prod) => (
+              <OfferCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} />
+            ))}
+          </InfiniteCarousel>
+
+          <div className="text-center mt-10">
+            <Link
+              href="/offers"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
+            >
+              <span>{isRtl ? 'عرض الكل' : 'View More'}</span>
+              {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* CATEGORIES */}
       {categories.length > 0 && (
@@ -219,50 +206,37 @@ export default function HomePage() {
       )}
 
       {/* FEATURED PRODUCTS */}
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {latestProducts.length > 0 ? (
-            <>
-              <div className="text-center mb-12">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-                  {isRtl ? 'منتجات مميزة' : 'Featured Products'}
-                </h2>
-                <p className="text-slate-500 text-sm mt-2 font-cairo">
-                  {isRtl ? 'اختر من بين أفضل منتجاتنا' : 'Pick from our top products'}
-                </p>
-                <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
-              </div>
-
-              <InfiniteCarousel isRtl={isRtl} speed={15}>
-                {latestProducts.map((prod) => (
-                  <ProductCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} variant="compact" />
-                ))}
-              </InfiniteCarousel>
-
-              <div className="text-center mt-12">
-                <Link
-                  href="/products"
-                  className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
-                >
-                  <span>{isRtl ? 'عرض الكل' : 'View More'}</span>
-                  {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                </Link>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 animate-fadeIn">
-              <div className="bg-gradient-to-b from-teal-50/60 to-white rounded-2xl p-10 border border-slate-100 shadow-sm text-center">
-                <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ShoppingBag size={32} className="text-teal-300" />
-                </div>
-                <p className="text-slate-400 font-cairo text-sm">
-                  {isRtl ? 'سيتم إضافة المنتجات قريبًا' : 'Products coming soon'}
-                </p>
-              </div>
+      {latestProducts.length > 0 && (
+        <section className="bg-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
+                {isRtl ? 'منتجات مميزة' : 'Featured Products'}
+              </h2>
+              <p className="text-slate-500 text-sm mt-2 font-cairo">
+                {isRtl ? 'اختر من بين أفضل منتجاتنا' : 'Pick from our top products'}
+              </p>
+              <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
             </div>
-          )}
-        </div>
-      </section>
+
+            <InfiniteCarousel isRtl={isRtl} speed={15}>
+              {latestProducts.map((prod) => (
+                <ProductCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} variant="compact" />
+              ))}
+            </InfiniteCarousel>
+
+            <div className="text-center mt-12">
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
+              >
+                <span>{isRtl ? 'عرض الكل' : 'View More'}</span>
+                {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* OFFERS BANNER */}
       {offers.length > 0 && (
@@ -353,5 +327,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
