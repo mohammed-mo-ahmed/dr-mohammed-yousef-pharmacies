@@ -75,6 +75,7 @@ export async function getProducts(filters?: {
   sort?: string;
   isLatest?: boolean;
   isBestSeller?: boolean;
+  isOnSale?: boolean;
   page?: number;
   limit?: number;
 }): Promise<PaginatedProducts> {
@@ -95,6 +96,10 @@ export async function getProducts(filters?: {
 
   if (filters?.isBestSeller) {
     query = query.eq('is_best_seller', true);
+  }
+
+  if (filters?.isOnSale) {
+    query = query.gt('old_price', 0).not('old_price', 'is', null);
   }
 
   if (filters?.search) {

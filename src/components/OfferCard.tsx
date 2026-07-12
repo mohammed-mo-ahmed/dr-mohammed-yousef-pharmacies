@@ -22,7 +22,9 @@ export default function OfferCard({ product, discount = 15, isRtl, onAddToCart, 
   const { isAuthenticated } = useAuth();
   const wishlisted = isWishlisted(product.id);
 
-  const originalPrice = product.price / (1 - discount / 100);
+  const originalPrice = product.old_price && product.old_price > product.price
+    ? product.old_price
+    : product.price / (1 - discount / 100);
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();

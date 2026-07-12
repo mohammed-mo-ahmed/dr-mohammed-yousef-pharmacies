@@ -19,8 +19,7 @@ export default function HomePage() {
   const isRtl = locale === 'ar';
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [bestSellingProducts, setBestSellingProducts] = useState<Product[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const [saleProducts, setSaleProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if ('scrollRestoration' in history) {
@@ -32,15 +31,13 @@ export default function HomePage() {
   useEffect(() => {
     async function loadHomeData() {
       try {
-        const [cats, { products: bestProds }, offList] = await Promise.all([
+        const [cats, { products: sales }] = await Promise.all([
           getCategories(),
-          getProducts({ isBestSeller: true, limit: 8 }),
-          getOffers(),
+          getProducts({ isOnSale: true, limit: 12 }),
         ]);
 
         setCategories(cats);
-        setBestSellingProducts(bestProds);
-        setOffers(offList);
+        setSaleProducts(sales);
       } catch (err) {
         console.error('Error loading homepage data:', err);
       }
@@ -130,7 +127,7 @@ export default function HomePage() {
       </ScrollScene>
 
       {/* 3. OFFERS — Horizontal infinite scroll */}
-      {bestSellingProducts.length > 0 && (
+      {saleProducts.length > 0 && (
         <section className="bg-slate-50 py-16 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
@@ -138,17 +135,19 @@ export default function HomePage() {
                 {isRtl ? 'عروض خاصة' : 'Special Offers'}
               </h2>
               <p className="text-slate-500 text-sm mt-2 font-cairo">
-                {isRtl ? 'خصومات مميزة على منتجات مختارة' : 'Exclusive discounts on selected products'}
+                {isRtl ? 'خصومات حقيقية على منتجات مختارة' : 'Real discounts on selected products'}
               </p>
               <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
             </div>
           </div>
 
           <InfiniteCarousel isRtl={isRtl} speed={18}>
-            {bestSellingProducts.map((prod, i) => {
-              const disc = offers[i % Math.max(offers.length, 1)]?.discount_percentage || [10, 15, 20, 25, 30][i % 5];
+            {saleProducts.map((prod) => {
+              const discount = prod.old_price
+                ? Math.round(((prod.old_price - prod.price) / prod.old_price) * 100)
+                : 0;
               return (
-                <OfferCard key={prod.id} product={prod} discount={disc} isRtl={isRtl} t={t} onAddToCart={addToCart} />
+                <OfferCard key={prod.id} product={prod} discount={discount} isRtl={isRtl} t={t} onAddToCart={addToCart} />
               );
             })}
           </InfiniteCarousel>
