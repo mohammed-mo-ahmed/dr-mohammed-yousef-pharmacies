@@ -546,7 +546,15 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data as Profile;
 }
 
-export async function upsertProfile(profile: Omit<Profile, 'id' | 'created_at' | 'updated_at'>): Promise<Profile | null> {
+export async function upsertProfile(profile: {
+  user_id: string;
+  full_name?: string;
+  phone?: string;
+  avatar_url?: string;
+  address?: string;
+  gender?: 'male' | 'female';
+  age?: number;
+}): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
     .upsert(

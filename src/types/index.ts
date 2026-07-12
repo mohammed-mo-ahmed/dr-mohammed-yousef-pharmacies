@@ -85,6 +85,7 @@ export interface Profile {
   address?: string;
   gender?: 'male' | 'female';
   age?: number;
+  role: 'user' | 'admin';
   created_at?: string;
   updated_at?: string;
 }

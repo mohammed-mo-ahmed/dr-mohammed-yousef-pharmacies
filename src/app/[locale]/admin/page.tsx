@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import {
   getCategories,
   createCategory,
@@ -24,7 +25,7 @@ import {
   seedDatabase,
 } from '@/lib/api';
 import { Product, Category, Order, Customer, Offer } from '@/types';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ShieldAlert } from 'lucide-react';
 
 import Sidebar from '@/components/admin/Sidebar';
 import DashboardTab from '@/components/admin/DashboardTab';
@@ -45,10 +46,9 @@ export default function AdminDashboardPage() {
   const locale = useLocale();
   const router = useRouter();
   const isRtl = locale === 'ar';
+  const { user: authUser, isAdmin, loading: authLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [user, setUser] = useState<import('@supabase/supabase-js').User | null>(null);
-  const [loadingSession, setLoadingSession] = useState(true);
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState<{ success: boolean; msg: string } | null>(null);
 
@@ -111,20 +111,16 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Auth Guard
+  // Auth + Admin Guard
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push(`/`);
-      } else {
-        setUser(session.user);
-        loadAllData();
-      }
-      setLoadingSession(false);
+    if (authLoading) return;
+    if (!authUser) {
+      router.push('/');
+      return;
     }
-    checkAuth();
-  }, [router]);
+    if (!isAdmin) return;
+    loadAllData();
+  }, [authUser, isAdmin, authLoading, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -345,7 +341,7 @@ export default function AdminDashboardPage() {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, stock: newStock } : p)));
   };
 
-  if (loadingSession) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
@@ -353,7 +349,34 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (!user) return null;
+  if (!authUser) return null;
+
+  // Non-admin access denied
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center font-cairo">
+        <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-12 shadow-md flex flex-col items-center text-center max-w-md">
+          <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mb-6">
+            <ShieldAlert size={36} />
+          </div>
+          <h1 className="text-xl font-extrabold text-slate-900 mb-3">
+            {isRtl ? 'غير مصرح بالدخول' : 'Access Denied'}
+          </h1>
+          <p className="text-slate-500 text-sm mb-6">
+            {isRtl
+              ? 'ليس لديك صلاحية للوصول إلى لوحة التحكم.'
+              : 'You do not have permission to access the admin dashboard.'}
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold"
+          >
+            {isRtl ? 'العودة للرئيسية' : 'Back to Home'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row font-cairo">
@@ -365,7 +388,7 @@ export default function AdminDashboardPage() {
         t={t}
         common={common}
         handleLogout={handleLogout}
-        userEmail={user.email || ''}
+        userEmail={authUser.email || ''}
       />
 
       <main className="flex-grow p-6 md:p-10 overflow-y-auto">
