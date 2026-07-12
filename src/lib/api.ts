@@ -99,7 +99,7 @@ export async function getProducts(filters?: {
   }
 
   if (filters?.isOnSale) {
-    query = query.gt('old_price', 0).not('old_price', 'is', null);
+    query = query.not('offer_price', 'is', null).lt('offer_price', 'price');
   }
 
   if (filters?.search) {

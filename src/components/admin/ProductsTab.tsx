@@ -105,15 +105,15 @@ export default function ProductsTab({ products, isRtl, t, common, openAddProduct
                 <td className="px-4 py-3 font-bold text-slate-900 font-sans text-xs">
                   <div className="flex flex-col">
                     <span>{p.price.toFixed(2)}</span>
-                    {p.old_price && p.old_price > p.price && (
-                      <span className="text-[10px] text-amber-500 line-through">{p.old_price.toFixed(2)}</span>
+                    {p.offer_price != null && p.offer_price < p.price && (
+                      <span className="text-[10px] text-amber-500">{p.offer_price.toFixed(2)}</span>
                     )}
                   </div>
                 </td>
                 <td className="px-4 py-3 font-bold font-sans text-xs">
-                  {p.old_price && p.old_price > p.price ? (
+                  {p.offer_price != null && p.offer_price < p.price ? (
                     <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-bold">
-                      %{Math.round(((p.old_price - p.price) / p.old_price) * 100)}
+                      %{Math.round(((p.price - p.offer_price) / p.price) * 100)}
                     </span>
                   ) : (
                     <span className="text-slate-300">-</span>
@@ -129,7 +129,7 @@ export default function ProductsTab({ products, isRtl, t, common, openAddProduct
                     <button
                       onClick={() => openOfferModal(p)}
                       className={`p-1.5 rounded-lg transition-colors ${
-                        p.old_price && p.old_price > p.price
+                        p.offer_price != null && p.offer_price < p.price
                           ? 'text-amber-500 bg-amber-50 hover:bg-amber-100'
                           : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50'
                       }`}

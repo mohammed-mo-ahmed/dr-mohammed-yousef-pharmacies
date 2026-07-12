@@ -192,7 +192,7 @@ function buildProductRow(drug, idx) {
     barcode: cleanStr(drug.barcode, 100),
     form: guessForm(drug),
     size: guessSize(drug),
-    old_price: cleanPrice(drug.oldprice),
+    offer_price: null,
     availability: cleanStr(drug.availability, 100),
     drug_category: cleanStr(drug.description, 500),
     uses_summary_ar: cleanStr(drug.uses_summary, 3000),
@@ -214,7 +214,7 @@ function generateInsertSQL(rows) {
     'name_ar', 'name_en', 'price', 'description_ar', 'description_en',
     'usage_instructions_ar', 'usage_instructions_en', 'image_url', 'category_id',
     'stock', 'is_best_seller', 'is_latest', 'active_ingredients', 'company',
-    'barcode', 'form', 'size', 'old_price', 'availability', 'drug_category',
+    'barcode', 'form', 'size', 'offer_price', 'availability', 'drug_category',
     'uses_summary_ar', 'uses_summary_en', 'warnings_summary_ar', 'warnings_summary_en',
     'warning_high_bp', 'warning_diabetes', 'warning_pregnancy', 'warning_lactation',
     'warning_kidney', 'warning_liver', 'warning_heart'

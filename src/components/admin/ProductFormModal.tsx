@@ -18,8 +18,6 @@ interface ProductFormModalProps {
   setProdNameEn: (v: string) => void;
   prodPrice: number;
   setProdPrice: (v: number) => void;
-  prodOldPrice: number;
-  setProdOldPrice: (v: number) => void;
   prodStock: number;
   setProdStock: (v: number) => void;
   prodCategoryId: string;
@@ -65,7 +63,6 @@ export default function ProductFormModal({
   prodNameAr, setProdNameAr,
   prodNameEn, setProdNameEn,
   prodPrice, setProdPrice,
-  prodOldPrice, setProdOldPrice,
   prodStock, setProdStock,
   prodCategoryId, setProdCategoryId,
   prodImage, setProdImage,
@@ -131,27 +128,6 @@ export default function ProductFormModal({
               onChange={(e) => setProdPrice(Number(e.target.value))}
               className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white font-sans font-bold"
             />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-500">
-              {isRtl ? 'السعر قبل الخصم (اختياري)' : 'Original Price (optional)'}
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={prodOldPrice || ''}
-              onChange={(e) => setProdOldPrice(Number(e.target.value) || 0)}
-              placeholder={isRtl ? 'اترك فارغاً إذا لا يوجد خصم' : 'Leave empty if no discount'}
-              className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white font-sans font-bold text-left"
-            />
-            {prodOldPrice > prodPrice && prodOldPrice > 0 && (
-              <span className="text-[10px] font-bold text-amber-600">
-                {isRtl
-                  ? `خصم ${Math.round(((prodOldPrice - prodPrice) / prodOldPrice) * 100)}%`
-                  : `${Math.round(((prodOldPrice - prodPrice) / prodOldPrice) * 100)}% off`}
-              </span>
-            )}
           </div>
 
           <div className="flex flex-col gap-1">

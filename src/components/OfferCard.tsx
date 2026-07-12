@@ -22,9 +22,10 @@ export default function OfferCard({ product, discount = 15, isRtl, onAddToCart, 
   const { isAuthenticated } = useAuth();
   const wishlisted = isWishlisted(product.id);
 
-  const originalPrice = product.old_price && product.old_price > product.price
-    ? product.old_price
-    : product.price / (1 - discount / 100);
+  const originalPrice = product.price;
+  const displayPrice = product.offer_price && product.offer_price < product.price
+    ? product.offer_price
+    : product.price;
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,7 +83,7 @@ export default function OfferCard({ product, discount = 15, isRtl, onAddToCart, 
         {/* Prices */}
         <div className="flex items-end gap-2 mt-auto">
           <span className="font-extrabold text-teal-600 font-sans text-sm">
-            {product.price.toFixed(2)}
+            {displayPrice.toFixed(2)}
           </span>
           <span className="text-slate-400 line-through font-sans text-[11px]">
             {originalPrice.toFixed(2)}

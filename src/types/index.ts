@@ -28,7 +28,7 @@ export interface Product {
   barcode?: string;
   form?: string;
   size?: string;
-  old_price?: number;
+  offer_price?: number | null;
   availability?: string;
   drug_category?: string;
   uses_summary_ar?: string;

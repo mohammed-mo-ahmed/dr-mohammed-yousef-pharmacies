@@ -7,8 +7,8 @@ import ScrollScene, { ScrollOverlay } from '@/components/ScrollScene';
 import OfferCard from '@/components/OfferCard';
 import InfiniteCarousel from '@/components/InfiniteCarousel';
 import CustomerReviews from '@/components/CustomerReviews';
-import { getCategories, getProducts, getOffers } from '@/lib/api';
-import { Product, Category, Offer } from '@/types';
+import { getCategories, getProducts } from '@/lib/api';
+import { Product, Category } from '@/types';
 import { ChevronLeft, ChevronRight, ShoppingBag, Shield, Truck, Clock, Award } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
@@ -143,8 +143,8 @@ export default function HomePage() {
 
           <InfiniteCarousel isRtl={isRtl} speed={18}>
             {saleProducts.map((prod) => {
-              const discount = prod.old_price
-                ? Math.round(((prod.old_price - prod.price) / prod.old_price) * 100)
+              const discount = prod.offer_price && prod.offer_price < prod.price
+                ? Math.round(((prod.price - prod.offer_price) / prod.price) * 100)
                 : 0;
               return (
                 <OfferCard key={prod.id} product={prod} discount={discount} isRtl={isRtl} t={t} onAddToCart={addToCart} />

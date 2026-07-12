@@ -239,7 +239,7 @@ function mapDrugToProduct(drug, catMap) {
     barcode: drug.barcode ? String(drug.barcode).trim().substring(0, 100) : null,
     form: guessForm(drug),
     size: guessSize(drug),
-    old_price: cleanPrice(drug.oldprice),
+    offer_price: null,
     availability: drug.availability ? String(drug.availability).trim().substring(0, 100) : null,
     drug_category: truncate(drug.description, 500) || null,
     uses_summary_ar: truncate(drug.uses_summary, 3000) || null,

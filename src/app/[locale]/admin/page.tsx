@@ -69,7 +69,6 @@ export default function AdminDashboardPage() {
   const [prodNameAr, setProdNameAr] = useState('');
   const [prodNameEn, setProdNameEn] = useState('');
   const [prodPrice, setProdPrice] = useState(0);
-  const [prodOldPrice, setProdOldPrice] = useState(0);
   const [prodStock, setProdStock] = useState(0);
   const [prodCategoryId, setProdCategoryId] = useState('');
   const [prodImage, setProdImage] = useState('');
@@ -159,7 +158,6 @@ export default function AdminDashboardPage() {
     setProdNameAr('');
     setProdNameEn('');
     setProdPrice(0);
-    setProdOldPrice(0);
     setProdStock(0);
     setProdCategoryId(categories[0]?.id || '');
     setProdImage('');
@@ -177,7 +175,6 @@ export default function AdminDashboardPage() {
     setProdNameAr(prod.name_ar);
     setProdNameEn(prod.name_en);
     setProdPrice(prod.price);
-    setProdOldPrice(prod.old_price || 0);
     setProdStock(prod.stock);
     setProdCategoryId(prod.category_id);
     setProdImage(prod.image_url);
@@ -196,7 +193,6 @@ export default function AdminDashboardPage() {
       name_ar: prodNameAr,
       name_en: prodNameEn,
       price: Number(prodPrice),
-      old_price: prodOldPrice > 0 ? Number(prodOldPrice) : undefined,
       stock: Number(prodStock),
       category_id: prodCategoryId,
       image_url: prodImage,
@@ -233,13 +229,13 @@ export default function AdminDashboardPage() {
     setOfferModalOpen(true);
   };
 
-  const handleSaveProductOffer = async (productId: string, newPrice: number, oldPrice: number) => {
-    await updateProduct(productId, { price: newPrice, old_price: oldPrice });
+  const handleSaveProductOffer = async (productId: string, offerPrice: number) => {
+    await updateProduct(productId, { offer_price: offerPrice });
     loadAllData();
   };
 
-  const handleRemoveProductOffer = async (productId: string, originalPrice: number) => {
-    await updateProduct(productId, { price: originalPrice, old_price: undefined });
+  const handleRemoveProductOffer = async (productId: string) => {
+    await updateProduct(productId, { offer_price: null });
     loadAllData();
   };
 
@@ -560,8 +556,6 @@ export default function AdminDashboardPage() {
         setProdNameEn={setProdNameEn}
         prodPrice={prodPrice}
         setProdPrice={setProdPrice}
-        prodOldPrice={prodOldPrice}
-        setProdOldPrice={setProdOldPrice}
         prodStock={prodStock}
         setProdStock={setProdStock}
         prodCategoryId={prodCategoryId}

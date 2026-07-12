@@ -10,25 +10,25 @@ interface OfferModalProps {
   onClose: () => void;
   product: Product | null;
   isRtl: boolean;
-  onSave: (productId: string, newPrice: number, oldPrice: number) => Promise<void>;
-  onRemove: (productId: string, originalPrice: number) => Promise<void>;
+  onSave: (productId: string, offerPrice: number) => Promise<void>;
+  onRemove: (productId: string) => Promise<void>;
 }
 
 export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, onRemove }: OfferModalProps) {
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [newPrice, setNewPrice] = useState(0);
-  const [originalPrice, setOriginalPrice] = useState(0);
+  const [offerPrice, setOfferPrice] = useState(0);
+  const [basePrice, setBasePrice] = useState(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (product) {
-      const orig = product.old_price && product.old_price > product.price ? product.old_price : product.price;
-      setOriginalPrice(orig);
-      setNewPrice(product.price);
-      if (product.old_price && product.old_price > product.price) {
-        const disc = Math.round(((product.old_price - product.price) / product.old_price) * 100);
+      setBasePrice(product.price);
+      if (product.offer_price && product.offer_price < product.price) {
+        setOfferPrice(product.offer_price);
+        const disc = Math.round(((product.price - product.offer_price) / product.price) * 100);
         setDiscountPercent(disc);
       } else {
+        setOfferPrice(0);
         setDiscountPercent(0);
       }
     }
@@ -36,22 +36,22 @@ export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, on
 
   const handleDiscountChange = (val: number) => {
     setDiscountPercent(val);
-    const price = originalPrice * (1 - val / 100);
-    setNewPrice(Math.round(price * 100) / 100);
+    const price = basePrice * (1 - val / 100);
+    setOfferPrice(Math.round(price * 100) / 100);
   };
 
-  const handleNewPriceChange = (val: number) => {
-    setNewPrice(val);
-    if (originalPrice > 0) {
-      const disc = Math.round(((originalPrice - val) / originalPrice) * 100);
+  const handleOfferPriceChange = (val: number) => {
+    setOfferPrice(val);
+    if (basePrice > 0) {
+      const disc = Math.round(((basePrice - val) / basePrice) * 100);
       setDiscountPercent(Math.max(0, Math.min(99, disc)));
     }
   };
 
   const handleSave = async () => {
-    if (!product || newPrice <= 0 || newPrice >= originalPrice) return;
+    if (!product || offerPrice <= 0 || offerPrice >= basePrice) return;
     setSaving(true);
-    await onSave(product.id, newPrice, originalPrice);
+    await onSave(product.id, offerPrice);
     setSaving(false);
     onClose();
   };
@@ -59,14 +59,14 @@ export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, on
   const handleRemove = async () => {
     if (!product) return;
     setSaving(true);
-    await onRemove(product.id, originalPrice);
+    await onRemove(product.id);
     setSaving(false);
     onClose();
   };
 
   if (!isOpen || !product) return null;
 
-  const hasOffer = product.old_price && product.old_price > product.price;
+  const hasOffer = product.offer_price != null && product.offer_price < product.price;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -100,7 +100,7 @@ export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, on
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-bold text-slate-800 text-xs truncate">{isRtl ? product.name_ar : product.name_en}</div>
-            <div className="text-slate-400 text-[10px]">{isRtl ? 'السعر الأصلي' : 'Original'}: {originalPrice.toFixed(2)}</div>
+            <div className="text-slate-400 text-[10px]">{isRtl ? 'السعر الأساسي' : 'Base Price'}: {basePrice.toFixed(2)}</div>
           </div>
         </div>
 
@@ -121,26 +121,26 @@ export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, on
             />
           </div>
 
-          {/* New Price */}
+          {/* Offer Price */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500">
-              {isRtl ? 'السعر الجديد' : 'New Price'}
+              {isRtl ? 'سعر العرض' : 'Offer Price'}
             </label>
             <input
               type="number"
               step="0.01"
               min="0.01"
-              value={newPrice || ''}
-              onChange={(e) => handleNewPriceChange(Number(e.target.value))}
+              value={offerPrice || ''}
+              onChange={(e) => handleOfferPriceChange(Number(e.target.value))}
               className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-amber-400 font-sans font-bold text-center text-lg"
             />
           </div>
 
           {/* Preview */}
-          {discountPercent > 0 && newPrice < originalPrice && (
+          {discountPercent > 0 && offerPrice > 0 && offerPrice < basePrice && (
             <div className="flex items-center justify-center gap-3 p-3 bg-amber-50 rounded-xl">
-              <span className="text-slate-400 line-through font-sans text-sm">{originalPrice.toFixed(2)}</span>
-              <span className="text-amber-600 font-extrabold text-lg font-sans">{newPrice.toFixed(2)}</span>
+              <span className="text-slate-400 line-through font-sans text-sm">{basePrice.toFixed(2)}</span>
+              <span className="text-amber-600 font-extrabold text-lg font-sans">{offerPrice.toFixed(2)}</span>
               <span className="px-2 py-0.5 bg-amber-500 text-white rounded-full text-[10px] font-bold">
                 -{discountPercent}%
               </span>
@@ -167,7 +167,7 @@ export default function OfferModal({ isOpen, onClose, product, isRtl, onSave, on
             </button>
             <button
               onClick={handleSave}
-              disabled={saving || discountPercent <= 0 || newPrice <= 0 || newPrice >= originalPrice}
+              disabled={saving || discountPercent <= 0 || offerPrice <= 0 || offerPrice >= basePrice}
               className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {saving ? '...' : (isRtl ? 'حفظ العرض' : 'Save Offer')}
