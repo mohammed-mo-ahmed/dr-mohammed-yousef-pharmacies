@@ -37,6 +37,7 @@ import InventoryTab from '@/components/admin/InventoryTab';
 import OffersTab from '@/components/admin/OffersTab';
 import ProductFormModal from '@/components/admin/ProductFormModal';
 import OfferFormModal from '@/components/admin/OfferFormModal';
+import OfferModal from '@/components/admin/OfferModal';
 
 type TabType = 'dashboard' | 'products' | 'categories' | 'orders' | 'customers' | 'inventory' | 'offers';
 
@@ -89,6 +90,10 @@ export default function AdminDashboardPage() {
   const [offTitleEn, setOffTitleEn] = useState('');
   const [offPercent, setOffPercent] = useState(0);
   const [offImage, setOffImage] = useState('');
+
+  // Product Offer Modal
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
+  const [offerProduct, setOfferProduct] = useState<Product | null>(null);
 
   const loadAllData = async () => {
     setLoadingData(true);
@@ -221,6 +226,21 @@ export default function AdminDashboardPage() {
       const ok = await deleteProduct(id);
       if (ok) loadAllData();
     }
+  };
+
+  const openOfferModal = (prod: Product) => {
+    setOfferProduct(prod);
+    setOfferModalOpen(true);
+  };
+
+  const handleSaveProductOffer = async (productId: string, newPrice: number, oldPrice: number) => {
+    await updateProduct(productId, { price: newPrice, old_price: oldPrice });
+    loadAllData();
+  };
+
+  const handleRemoveProductOffer = async (productId: string) => {
+    await updateProduct(productId, { old_price: undefined });
+    loadAllData();
   };
 
   // ==========================================
@@ -466,6 +486,7 @@ export default function AdminDashboardPage() {
                 common={common}
                 openAddProduct={openAddProduct}
                 openEditProduct={openEditProduct}
+                openOfferModal={openOfferModal}
                 handleDeleteProduct={handleDeleteProduct}
               />
             )}
@@ -648,6 +669,15 @@ export default function AdminDashboardPage() {
         offImage={offImage}
         setOffImage={setOffImage}
         onSubmit={handleSaveOffer}
+      />
+
+      <OfferModal
+        isOpen={offerModalOpen}
+        onClose={() => setOfferModalOpen(false)}
+        product={offerProduct}
+        isRtl={isRtl}
+        onSave={handleSaveProductOffer}
+        onRemove={handleRemoveProductOffer}
       />
 
     </div>

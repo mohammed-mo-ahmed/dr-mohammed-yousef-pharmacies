@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Percent } from 'lucide-react';
 import Image from 'next/image';
 import { Product } from '@/types';
 
@@ -12,13 +12,14 @@ interface ProductsTabProps {
   common: (key: string) => string;
   openAddProduct: () => void;
   openEditProduct: (prod: Product) => void;
+  openOfferModal: (prod: Product) => void;
   handleDeleteProduct: (id: string) => void;
 }
 
 const isLowStock = (stock: number) => stock <= 10;
 const PAGE_SIZE = 25;
 
-export default function ProductsTab({ products, isRtl, t, common, openAddProduct, openEditProduct, handleDeleteProduct }: ProductsTabProps) {
+export default function ProductsTab({ products, isRtl, t, common, openAddProduct, openEditProduct, openOfferModal, handleDeleteProduct }: ProductsTabProps) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -101,7 +102,12 @@ export default function ProductsTab({ products, isRtl, t, common, openAddProduct
                 <td className="px-4 py-3 hidden md:table-cell text-xs text-slate-600">{p.form || '-'}</td>
                 <td className="px-4 py-3 hidden lg:table-cell text-xs text-slate-600 truncate max-w-[150px]">{p.company || '-'}</td>
                 <td className="px-4 py-3 font-bold text-slate-900 font-sans text-xs">
-                  {p.price.toFixed(2)}
+                  <div className="flex flex-col">
+                    <span>{p.price.toFixed(2)}</span>
+                    {p.old_price && p.old_price > p.price && (
+                      <span className="text-[10px] text-amber-500 line-through">{p.old_price.toFixed(2)}</span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 font-bold font-sans text-xs">
                   <span className={isLowStock(p.stock) ? 'text-rose-500' : 'text-slate-750'}>
@@ -110,6 +116,17 @@ export default function ProductsTab({ products, isRtl, t, common, openAddProduct
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openOfferModal(p)}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        p.old_price && p.old_price > p.price
+                          ? 'text-amber-500 bg-amber-50 hover:bg-amber-100'
+                          : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50'
+                      }`}
+                      title={isRtl ? 'إضافة عرض' : 'Add Offer'}
+                    >
+                      <Percent size={14} />
+                    </button>
                     <button
                       onClick={() => openEditProduct(p)}
                       className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
