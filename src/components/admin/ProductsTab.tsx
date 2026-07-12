@@ -75,6 +75,7 @@ export default function ProductsTab({ products, isRtl, t, common, openAddProduct
               <th className="px-4 py-3 hidden md:table-cell">{isRtl ? 'الشكل' : 'Form'}</th>
               <th className="px-4 py-3 hidden lg:table-cell">{isRtl ? 'الشركة' : 'Company'}</th>
               <th className="px-4 py-3">{common('price')}</th>
+              <th className="px-4 py-3">{isRtl ? 'الخصم' : 'Discount'}</th>
               <th className="px-4 py-3">{t('products.fields.stock')}</th>
               <th className="px-4 py-3">{common('actions')}</th>
             </tr>
@@ -108,6 +109,15 @@ export default function ProductsTab({ products, isRtl, t, common, openAddProduct
                       <span className="text-[10px] text-amber-500 line-through">{p.old_price.toFixed(2)}</span>
                     )}
                   </div>
+                </td>
+                <td className="px-4 py-3 font-bold font-sans text-xs">
+                  {p.old_price && p.old_price > p.price ? (
+                    <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-bold">
+                      %{Math.round(((p.old_price - p.price) / p.old_price) * 100)}
+                    </span>
+                  ) : (
+                    <span className="text-slate-300">-</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 font-bold font-sans text-xs">
                   <span className={isLowStock(p.stock) ? 'text-rose-500' : 'text-slate-750'}>
