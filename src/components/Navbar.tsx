@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { supabase } from '@/lib/supabase';
-import { ShoppingCart, Menu, X, Globe, LogIn, Heart, User, ChevronDown, LogOut, ShoppingBag, Package, ClipboardList } from 'lucide-react';
+import { ShoppingCart, Menu, X, Globe, LogIn, Heart, User, ChevronDown, LogOut, Package } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Navbar() {
@@ -70,14 +70,14 @@ export default function Navbar() {
         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors"
       >
         <User size={16} />
-        <span>{t('myAccount')}</span>
+        <span>{t('profile')}</span>
       </Link>
       <Link
         href="/orders"
         onClick={() => setAccountOpen(false)}
         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors"
       >
-        <ClipboardList size={16} />
+        <Package size={16} />
         <span>{t('myOrders')}</span>
       </Link>
       <Link
@@ -87,14 +87,6 @@ export default function Navbar() {
       >
         <Heart size={16} />
         <span>{t('wishlist')}</span>
-      </Link>
-      <Link
-        href="/cart"
-        onClick={() => setAccountOpen(false)}
-        className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors"
-      >
-        <ShoppingBag size={16} />
-        <span>{t('cart')}</span>
       </Link>
       <hr className="my-1 border-slate-100" />
       <button
@@ -293,14 +285,14 @@ export default function Navbar() {
                     className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
                   >
                     <User size={18} />
-                    <span>{t('myAccount')}</span>
+                    <span>{t('profile')}</span>
                   </Link>
                   <Link
                     href="/orders"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
                   >
-                    <ClipboardList size={18} />
+                    <Package size={18} />
                     <span>{t('myOrders')}</span>
                   </Link>
                   <Link
