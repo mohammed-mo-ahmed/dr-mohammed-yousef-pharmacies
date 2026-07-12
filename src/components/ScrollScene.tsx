@@ -85,31 +85,27 @@ export default function ScrollScene({
 
     const srcAspect = srcW / srcH;
     const dstAspect = bufW / bufH;
-    const mobile = isMobileRef.current;
 
     let drawW: number;
     let drawH: number;
     let offsetX: number;
     let offsetY: number;
 
+    // Always anchor the frame flush to the top edge, and flush to the left
+    // edge of the buffer. Because the canvas is mirrored via CSS `scaleX(-1)`
+    // for the LTR (English) locale, a left-anchored buffer renders flush
+    // against the *right* edge on screen for English, and flush against the
+    // *left* edge (no mirror) for Arabic — matching top-left (AR) / mirrored
+    // top-right (EN) in every viewport size, with no vertical centering.
     if (srcAspect > dstAspect) {
       drawW = bufW;
       drawH = bufW / srcAspect;
-      offsetX = 0;
-      offsetY = (bufH - drawH) / 2;
     } else {
       drawH = bufH;
       drawW = bufH * srcAspect;
-      // NOTE: the canvas element itself is mirrored via CSS `scaleX(-1)` for the
-      // LTR (English) locale, so anything drawn flush against the *left* edge of
-      // the buffer ends up rendered flush against the *right* edge of the screen
-      // after the mirror is applied — and vice versa. For RTL (Arabic) there is
-      // no mirror, so we draw flush-left directly. In both cases the buffer-space
-      // offset we want is 0; only the on-screen result differs because of the
-      // CSS transform, not because of this calculation.
-      offsetX = 0;
-      offsetY = mobile ? (bufH - drawH) / 2 : 0;
     }
+    offsetX = 0;
+    offsetY = 0;
 
     ctx.drawImage(img, 0, 0, srcW, srcH, offsetX, offsetY, drawW, drawH);
   }, [isRtl]);
