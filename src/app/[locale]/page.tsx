@@ -2,27 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Link, useRouter } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
 import ScrollScene, { ScrollOverlay } from '@/components/ScrollScene';
-import ProductCard from '@/components/ProductCard';
 import OfferCard from '@/components/OfferCard';
 import InfiniteCarousel from '@/components/InfiniteCarousel';
 import CustomerReviews from '@/components/CustomerReviews';
 import { getCategories, getProducts, getOffers } from '@/lib/api';
 import { Product, Category, Offer } from '@/types';
 import { ChevronLeft, ChevronRight, ShoppingBag, Shield, Truck, Clock, Award } from 'lucide-react';
-import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 
 export default function HomePage() {
   const t = useTranslations();
   const locale = useLocale();
-  const router = useRouter();
   const { addToCart } = useCart();
   const isRtl = locale === 'ar';
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [bestSellingProducts, setBestSellingProducts] = useState<Product[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
 
@@ -36,15 +32,13 @@ export default function HomePage() {
   useEffect(() => {
     async function loadHomeData() {
       try {
-        const [cats, { products: latestProds }, { products: bestProds }, offList] = await Promise.all([
+        const [cats, { products: bestProds }, offList] = await Promise.all([
           getCategories(),
-          getProducts({ isLatest: true, limit: 8 }),
           getProducts({ isBestSeller: true, limit: 8 }),
           getOffers(),
         ]);
 
         setCategories(cats);
-        setLatestProducts(latestProds);
         setBestSellingProducts(bestProds);
         setOffers(offList);
       } catch (err) {
@@ -100,15 +94,13 @@ export default function HomePage() {
 
   return (
     <div className="w-full bg-white">
+      {/* 1. HERO + 2. FEATURES */}
       <ScrollScene
         overlays={heroOverlays}
         locale={locale}
         navbarHeight={80}
       >
-      {/* FEATURES — rendered inside ScrollScene section, below the sticky hero panel */}
-      <section
-        className="bg-gradient-to-b from-teal-50 to-slate-100 py-8 md:py-10"
-      >
+      <section className="bg-gradient-to-b from-teal-50 to-slate-100 py-8 md:py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[
@@ -137,9 +129,7 @@ export default function HomePage() {
       </section>
       </ScrollScene>
 
-      <div className="relative bg-white">
-
-      {/* OFFERS — Horizontal infinite scroll */}
+      {/* 3. OFFERS — Horizontal infinite scroll */}
       {bestSellingProducts.length > 0 && (
         <section className="bg-slate-50 py-16 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -175,7 +165,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* CATEGORIES */}
+      {/* 4. CATEGORIES */}
       {categories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-10">
@@ -208,125 +198,9 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* FEATURED PRODUCTS */}
-      {latestProducts.length > 0 && (
-        <section className="bg-white py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-                {isRtl ? 'منتجات مميزة' : 'Featured Products'}
-              </h2>
-              <p className="text-slate-500 text-sm mt-2 font-cairo">
-                {isRtl ? 'اختر من بين أفضل منتجاتنا' : 'Pick from our top products'}
-              </p>
-              <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
-            </div>
-
-            <InfiniteCarousel isRtl={isRtl} speed={15}>
-              {latestProducts.map((prod) => (
-                <ProductCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} variant="compact" />
-              ))}
-            </InfiniteCarousel>
-
-            <div className="text-center mt-12">
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
-              >
-                <span>{isRtl ? 'عرض الكل' : 'View More'}</span>
-                {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* OFFERS BANNER */}
-      {offers.length > 0 && (
-        <section className="bg-gradient-to-r from-teal-500 to-emerald-600 py-5 px-4 shadow-inner text-white">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-white text-teal-600 rounded-full text-xs font-extrabold uppercase animate-pulse">
-                {t('offersBanner.badge')}
-              </span>
-              <p className="text-sm md:text-base font-bold font-cairo">
-                {isRtl ? offers[0].title_ar : offers[0].title_en}
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/offers')}
-              className="px-6 py-2 bg-white text-teal-600 hover:bg-teal-50 rounded-xl text-sm font-extrabold font-cairo transition-all shadow-md"
-            >
-              {t('offersBanner.cta')}
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* CUSTOMER REVIEWS */}
+      {/* 5. CUSTOMER REVIEWS */}
       <CustomerReviews />
 
-      {/* BEST-SELLING PRODUCTS */}
-      {bestSellingProducts.length > 0 && (
-        <section className="bg-slate-50 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-                  {isRtl ? 'الأكثر مبيعاً' : 'Best Selling'}
-                </h2>
-                <p className="text-slate-500 text-xs md:text-sm mt-1 font-cairo">
-                  {isRtl ? 'المنتجات الأكثر طلباً ورواجاً بين عملائنا' : 'Top requested products by our customers'}
-                </p>
-              </div>
-              <button
-                onClick={() => router.push('/products')}
-                className="text-teal-600 hover:text-teal-700 font-bold text-sm flex items-center gap-1 font-cairo"
-              >
-                <span>{isRtl ? 'عرض الكل' : 'View All'}</span>
-                {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {bestSellingProducts.slice(0, 4).map((prod) => (
-                <ProductCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* LATEST PRODUCTS */}
-      {latestProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-                {isRtl ? 'وصل حديثاً' : 'Latest Additions'}
-              </h2>
-              <p className="text-slate-500 text-xs md:text-sm mt-1 font-cairo">
-                {isRtl ? 'أحدث المنتجات الطبية ومستحضرات العناية المضافة حديثاً' : 'Our newest medical and cosmetics products'}
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/products')}
-              className="text-teal-600 hover:text-teal-700 font-bold text-sm flex items-center gap-1 font-cairo"
-            >
-              <span>{isRtl ? 'عرض الكل' : 'View All'}</span>
-              {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {latestProducts.slice(0, 4).map((prod) => (
-              <ProductCard key={prod.id} product={prod} isRtl={isRtl} t={t} onAddToCart={addToCart} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      </div>
     </div>
   );
 }
