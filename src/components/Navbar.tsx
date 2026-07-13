@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
 import { supabase } from '@/lib/supabase';
 import { ShoppingCart, Menu, X, Globe, LogIn, Heart, User, ChevronDown, LogOut, Package } from 'lucide-react';
 import Image from 'next/image';
@@ -17,7 +16,6 @@ export default function Navbar() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const { cartCount } = useCart();
-  const { wishlistCount } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -137,22 +135,8 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* CONTROLS (Wishlist, Cart, Language, Login/Account) */}
+        {/* CONTROLS (Cart, Language, Login/Account) */}
         <div className="hidden lg:flex items-center gap-3">
-          {/* Wishlist Icon */}
-          <Link
-            href="/wishlist"
-            aria-label={t('wishlist')}
-            className="relative p-2 text-slate-700 hover:text-teal-600 transition-colors bg-slate-50 hover:bg-teal-50 rounded-xl border border-slate-100"
-          >
-            <Heart size={20} />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1.5 -end-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                {wishlistCount}
-              </span>
-            )}
-          </Link>
-
           {/* Cart Icon — always visible */}
           <Link
             href="/cart"
@@ -202,19 +186,43 @@ export default function Navbar() {
 
         {/* MOBILE TRIGGER */}
         <div className="flex lg:hidden items-center gap-2">
-          {/* Wishlist (mobile) */}
-          <Link
-            href="/wishlist"
-            aria-label={t('wishlist')}
-            className="relative p-2 text-slate-700 hover:text-teal-600 bg-slate-50 rounded-xl"
-          >
-            <Heart size={20} />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1.5 -end-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
-                {wishlistCount}
-              </span>
-            )}
-          </Link>
+          {/* Account Dropdown (mobile) */}
+          {isAuthenticated && (
+            <div className="relative" ref={accountRef}>
+              <button
+                onClick={() => setAccountOpen(!accountOpen)}
+                className="p-2 text-slate-700 hover:text-teal-600 bg-slate-50 rounded-xl"
+                aria-label={t('myAccount')}
+              >
+                <User size={20} />
+              </button>
+              {accountOpen && (
+                <div className="absolute top-full end-0 mt-2 w-52 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 z-50 animate-fadeIn">
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <p className="text-xs text-slate-400">{isRtl ? 'مرحباً بك' : 'Welcome back'}</p>
+                    <p className="text-sm font-bold text-slate-800 truncate">{user?.email}</p>
+                  </div>
+                  <Link href="/account" onClick={() => { setAccountOpen(false); setMobileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors">
+                    <User size={16} />
+                    <span>{t('profile')}</span>
+                  </Link>
+                  <Link href="/orders" onClick={() => { setAccountOpen(false); setMobileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors">
+                    <Package size={16} />
+                    <span>{t('myOrders')}</span>
+                  </Link>
+                  <Link href="/wishlist" onClick={() => { setAccountOpen(false); setMobileMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-teal-600 transition-colors">
+                    <Heart size={16} />
+                    <span>{t('wishlist')}</span>
+                  </Link>
+                  <hr className="my-1 border-slate-100" />
+                  <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors w-full">
+                    <LogOut size={16} />
+                    <span>{t('logout')}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Cart (mobile) — always visible */}
           <Link
@@ -279,30 +287,6 @@ export default function Navbar() {
                       <p className="text-sm font-bold text-slate-800 truncate">{user?.email}</p>
                     </div>
                   </div>
-                  <Link
-                    href="/account"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
-                  >
-                    <User size={18} />
-                    <span>{t('profile')}</span>
-                  </Link>
-                  <Link
-                    href="/orders"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
-                  >
-                    <Package size={18} />
-                    <span>{t('myOrders')}</span>
-                  </Link>
-                  <Link
-                    href="/wishlist"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-slate-50 hover:bg-teal-50 text-slate-700 rounded-xl font-semibold border border-slate-200 text-center transition-colors"
-                  >
-                    <Heart size={18} />
-                    <span>{t('wishlist')}</span>
-                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-semibold border border-rose-200 text-center transition-colors"
