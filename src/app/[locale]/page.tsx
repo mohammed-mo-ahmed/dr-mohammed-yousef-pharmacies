@@ -130,14 +130,23 @@ export default function HomePage() {
       {saleProducts.length > 0 && (
         <section className="bg-slate-50 py-16 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
-                {isRtl ? 'عروض خاصة' : 'Special Offers'}
-              </h2>
-              <p className="text-slate-500 text-sm mt-2 font-cairo">
-                {isRtl ? 'خصومات حقيقية على منتجات مختارة' : 'Real discounts on selected products'}
-              </p>
-              <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
+            <div className={`flex items-center justify-between mb-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
+                  {isRtl ? 'عروض خاصة' : 'Special Offers'}
+                </h2>
+                <p className="text-slate-500 text-sm mt-2 font-cairo">
+                  {isRtl ? 'خصومات حقيقية على منتجات مختارة' : 'Real discounts on selected products'}
+                </p>
+                <div className="w-16 h-1 bg-teal-600 mt-4 rounded-full" />
+              </div>
+              <Link
+                href="/offers"
+                className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl transition-all shadow-md hover:shadow-lg font-cairo whitespace-nowrap flex-shrink-0"
+              >
+                <span>{isRtl ? 'عرض الكل' : 'View All'}</span>
+                {isRtl ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+              </Link>
             </div>
           </div>
 
@@ -151,16 +160,6 @@ export default function HomePage() {
               );
             })}
           </InfiniteCarousel>
-
-          <div className="text-center mt-10">
-            <Link
-              href="/offers"
-              className="inline-flex items-center gap-2 px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg font-cairo"
-            >
-              <span>{isRtl ? 'عرض الكل' : 'View More'}</span>
-              {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-            </Link>
-          </div>
         </section>
       )}
 

@@ -20,6 +20,8 @@ export default function ProductCard({ product, isRtl, t, onAddToCart, variant = 
   const isDefault = variant === 'default';
   const { toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
+  const hasOffer = product.offer_price != null && product.offer_price < product.price;
+  const discount = hasOffer ? Math.round(((product.price - product.offer_price!) / product.price) * 100) : 0;
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -84,10 +86,26 @@ export default function ProductCard({ product, isRtl, t, onAddToCart, variant = 
 
         <div className="mt-4 flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-xs text-slate-400">{t('common.price')}</span>
-            <span className={`font-extrabold text-teal-600 font-sans ${isDefault ? 'text-base md:text-lg' : 'text-sm'}`}>
-              {product.price.toFixed(2)} <span className={`font-bold ${isDefault ? 'text-xs md:text-sm' : 'text-[10px]'}`}>{t('common.currency')}</span>
-            </span>
+            {hasOffer ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className={`font-extrabold text-rose-600 font-sans ${isDefault ? 'text-base md:text-lg' : 'text-sm'}`}>
+                    {product.offer_price!.toFixed(2)} <span className={`font-bold ${isDefault ? 'text-xs md:text-sm' : 'text-[10px]'}`}>{t('common.currency')}</span>
+                  </span>
+                  <span className="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-full text-[9px] font-extrabold">
+                    -{discount}%
+                  </span>
+                </div>
+                <span className="text-xs text-slate-400 line-through font-sans">{product.price.toFixed(2)} {t('common.currency')}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs text-slate-400">{t('common.price')}</span>
+                <span className={`font-extrabold text-teal-600 font-sans ${isDefault ? 'text-base md:text-lg' : 'text-sm'}`}>
+                  {product.price.toFixed(2)} <span className={`font-bold ${isDefault ? 'text-xs md:text-sm' : 'text-[10px]'}`}>{t('common.currency')}</span>
+                </span>
+              </>
+            )}
           </div>
 
           <button
