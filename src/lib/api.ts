@@ -98,10 +98,6 @@ export async function getProducts(filters?: {
     query = query.eq('is_best_seller', true);
   }
 
-  if (filters?.isOnSale) {
-    query = query.not('offer_price', 'is', null).lt('offer_price', 'price');
-  }
-
   if (filters?.search) {
     const safe = filters.search.replace(/[%_]/g, '\\$&');
     query = query.or(`name_ar.ilike.%${safe}%,name_en.ilike.%${safe}%,barcode.ilike.%${safe}%`);
@@ -121,7 +117,12 @@ export async function getProducts(filters?: {
     query = query.order('created_at', { ascending: false });
   }
 
-  query = query.range(from, to);
+  // For isOnSale, skip server-side filter — load a large batch and filter client-side
+  if (!filters?.isOnSale) {
+    query = query.range(from, to);
+  } else {
+    query = query.range(0, 999);
+  }
 
   const { data, error, count } = await query;
 
@@ -130,10 +131,14 @@ export async function getProducts(filters?: {
     return { products: [], total: 0 };
   }
 
-  const products = (data || []).map((prod: Record<string, unknown>) => ({
+  let products = (data || []).map((prod: Record<string, unknown>) => ({
     ...prod,
     category: (prod as { categories?: unknown }).categories,
   })) as Product[];
+
+  if (filters?.isOnSale) {
+    products = products.filter(p => p.offer_price != null && p.offer_price < p.price).slice(0, limit);
+  }
 
   return { products, total: count ?? 0 };
 }
