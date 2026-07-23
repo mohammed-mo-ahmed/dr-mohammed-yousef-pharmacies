@@ -12,14 +12,15 @@ export default function InfiniteCarousel({ children, isRtl, speed = 20 }: Infini
   const trackRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef(0);
   const xRef = useRef(0);
-  const pausedRef = useRef(false);
+  const currentSpeedRef = useRef(0);
+  const targetSpeedRef = useRef(speed);
   const draggingRef = useRef(false);
-  const hoveredRef = useRef(false);
   const dragStartRef = useRef(0);
   const dragXRef = useRef(0);
   const twRef = useRef(0);
+  const mountedRef = useRef(false);
 
-  const clones = useMemo(() => [...children, ...children], [children]);
+  const clones = useMemo(() => [...children, ...children, ...children], [children]);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -36,16 +37,33 @@ export default function InfiniteCarousel({ children, isRtl, speed = 20 }: Infini
     };
 
     measure();
+
+    if (!mountedRef.current) {
+      xRef.current = -twRef.current;
+      track.style.transform = `translate3d(${xRef.current}px,0,0)`;
+      currentSpeedRef.current = speed;
+      targetSpeedRef.current = speed;
+      mountedRef.current = true;
+    }
+
     const onResize = () => measure();
     window.addEventListener('resize', onResize);
 
     const tick = () => {
-      if (!pausedRef.current && !hoveredRef.current) {
-        const step = speed * 0.016;
+      currentSpeedRef.current += (targetSpeedRef.current - currentSpeedRef.current) * 0.04;
+
+      if (!draggingRef.current) {
+        const step = currentSpeedRef.current * 0.016;
         xRef.current -= isRtl ? -step : step;
-        if (xRef.current <= -twRef.current) xRef.current += twRef.current;
-        track.style.transform = `translate3d(${xRef.current}px,0,0)`;
       }
+
+      if (xRef.current <= -twRef.current * 2) {
+        xRef.current += twRef.current;
+      } else if (xRef.current >= 0) {
+        xRef.current -= twRef.current;
+      }
+
+      track.style.transform = `translate3d(${xRef.current}px,0,0)`;
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -58,7 +76,7 @@ export default function InfiniteCarousel({ children, isRtl, speed = 20 }: Infini
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     draggingRef.current = true;
-    pausedRef.current = true;
+    targetSpeedRef.current = 0;
     dragStartRef.current = e.clientX;
     dragXRef.current = xRef.current;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -73,8 +91,8 @@ export default function InfiniteCarousel({ children, isRtl, speed = 20 }: Infini
 
   const onPointerUp = useCallback(() => {
     draggingRef.current = false;
-    if (!hoveredRef.current) pausedRef.current = false;
-  }, []);
+    targetSpeedRef.current = speed;
+  }, [speed]);
 
   return (
     <div
@@ -88,8 +106,6 @@ export default function InfiniteCarousel({ children, isRtl, speed = 20 }: Infini
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onMouseEnter={() => { hoveredRef.current = true; }}
-        onMouseLeave={() => { hoveredRef.current = false; }}
       >
         {clones.map((child, i) => (
           <div

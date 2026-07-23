@@ -62,6 +62,22 @@ export interface OrderItem {
   product?: Product;
 }
 
+export type OrderStatus =
+  | 'pending'
+  | 'under_review'
+  | 'approved'
+  | 'awaiting_payment'
+  | 'paid'
+  | 'processing'
+  | 'ready_for_pickup'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'shipped'
+  | 'cancelled';
+
+export type PaymentMethod = 'online' | 'cod' | 'pickup';
+export type PaymentStatus = 'unpaid' | 'awaiting_payment' | 'paid' | 'refunded';
+
 export interface Order {
   id: string;
   customer_name: string;
@@ -69,11 +85,28 @@ export interface Order {
   customer_address: string;
   notes?: string;
   delivery_method: 'home_delivery' | 'pharmacy_pickup';
-  status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
+  status: OrderStatus;
+  payment_method?: PaymentMethod;
+  payment_status?: PaymentStatus;
   total: number;
   user_id?: string;
   created_at?: string;
   order_items?: OrderItem[];
+}
+
+export interface BlogPost {
+  id: string;
+  title_ar: string;
+  title_en: string;
+  excerpt_ar: string;
+  excerpt_en: string;
+  content_ar: string;
+  content_en: string;
+  image_url?: string;
+  author: string;
+  slug: string;
+  published_at?: string;
+  created_at?: string;
 }
 
 export interface Profile {

@@ -103,11 +103,19 @@ export default function DashboardTab({ orders, customers, products, isRtl, t, co
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      o.status === 'pending' ? 'bg-amber-50 text-amber-700' :
-                      o.status === 'shipped' ? 'bg-sky-50 text-sky-700' :
-                      o.status === 'delivered' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'
+                      o.status === 'pending' ? 'bg-gray-100 text-gray-700' :
+                      o.status === 'under_review' ? 'bg-amber-50 text-amber-700' :
+                      o.status === 'approved' ? 'bg-teal-50 text-teal-700' :
+                      o.status === 'awaiting_payment' ? 'bg-blue-50 text-blue-700' :
+                      o.status === 'paid' ? 'bg-emerald-50 text-emerald-700' :
+                      o.status === 'processing' ? 'bg-purple-50 text-purple-700' :
+                      o.status === 'ready_for_pickup' ? 'bg-cyan-50 text-cyan-700' :
+                      o.status === 'out_for_delivery' ? 'bg-indigo-50 text-indigo-700' :
+                      o.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                      o.status === 'shipped' ? 'bg-sky-100 text-sky-700' :
+                      o.status === 'cancelled' ? 'bg-rose-50 text-rose-700' : 'bg-slate-50 text-slate-500'
                     }`}>
-                      {t(`orders.status${o.status.charAt(0).toUpperCase() + o.status.slice(1)}`)}
+                      {t(`orders.status${o.status.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}`)}
                     </span>
                   </td>
                   <td className="px-6 py-4">

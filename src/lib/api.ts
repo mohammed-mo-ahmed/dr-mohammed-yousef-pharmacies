@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import { Product, Category, Order, Customer, Profile } from '@/types';
+import { Product, Category, Order, Customer, Profile, BlogPost, OrderStatus } from '@/types';
+import { getWhatsAppMessage, getWhatsAppUrl } from './whatsapp';
 
 // ==========================================
 // CATEGORIES CRUD
@@ -295,9 +296,12 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function createOrder(
-  order: Omit<Order, 'id' | 'created_at' | 'status' | 'order_items'> & { user_id?: string },
+  order: Omit<Order, 'id' | 'created_at' | 'status' | 'order_items' | 'payment_status'> & { user_id?: string; payment_method?: string },
   items: { product_id: string; quantity: number; price: number }[]
 ): Promise<Order | null> {
+  // Determine initial payment status based on payment method
+  const paymentStatus = order.payment_method === 'online' ? 'unpaid' : 'unpaid';
+
   // 1. Insert into orders table
   const { data: newOrder, error: orderError } = await supabase
     .from('orders')
@@ -308,6 +312,8 @@ export async function createOrder(
         customer_address: order.customer_address,
         notes: order.notes,
         delivery_method: order.delivery_method,
+        payment_method: order.payment_method || 'cod',
+        payment_status: paymentStatus,
         status: 'pending',
         total: order.total,
         user_id: order.user_id || null,
@@ -375,12 +381,12 @@ export async function createOrder(
   return newOrder;
 }
 
-export async function updateOrderStatus(id: string, status: Order['status']): Promise<Order | null> {
+export async function updateOrderStatus(id: string, status: OrderStatus, isRtl = false): Promise<{ order: Order | null; whatsappUrl?: string }> {
   // Verify the caller is authenticated
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     console.error('Unauthorized attempt to update order status');
-    return null;
+    return { order: null };
   }
 
   const { data, error } = await supabase
@@ -392,9 +398,21 @@ export async function updateOrderStatus(id: string, status: Order['status']): Pr
 
   if (error) {
     console.error('Error updating order status:', error);
-    return null;
+    return { order: null };
   }
-  return data;
+
+  // Generate WhatsApp notification URL
+  let whatsappUrl: string | undefined;
+  try {
+    const msg = getWhatsAppMessage(status, isRtl, data?.total);
+    if (msg && data?.customer_phone) {
+      whatsappUrl = getWhatsAppUrl(data.customer_phone, msg);
+    }
+  } catch (e) {
+    console.warn('Failed to generate WhatsApp URL:', e);
+  }
+
+  return { order: data, whatsappUrl };
 }
 
 export async function deleteOrder(id: string): Promise<boolean> {
@@ -552,6 +570,37 @@ export async function getOrdersByUser(userId: string): Promise<Order[]> {
       product: (item as { products?: unknown }).products,
     })),
   })) as Order[];
+}
+
+// ==========================================
+// BLOG POSTS CRUD
+// ==========================================
+
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    console.error('Error fetching blog post:', error);
+    return null;
+  }
+  return data;
 }
 
 // ==========================================

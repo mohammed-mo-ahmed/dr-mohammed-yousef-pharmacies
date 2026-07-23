@@ -6,6 +6,7 @@ import { ShoppingBag, Heart } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { Product } from '@/types';
 import { useWishlist } from '@/context/WishlistContext';
+import { getProductImage } from '@/lib/productImages';
 
 interface ProductCardProps {
   product: Product;
@@ -33,7 +34,7 @@ export default function ProductCard({ product, isRtl, t, onAddToCart, variant = 
     <div className="group bg-white rounded-2xl border border-slate-100 hover:shadow-xl hover:border-slate-200 hover:scale-[1.02] transition-all duration-500 overflow-hidden flex flex-col justify-between h-full">
       <Link href={`/products/${product.id}`} className="block w-full aspect-square relative bg-slate-50 overflow-hidden">
         <Image
-          src={imgErr || !product.image_url ? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60' : product.image_url}
+          src={imgErr ? getProductImage(null, product.form) : getProductImage(product.image_url, product.form)}
           alt={isRtl ? product.name_ar : product.name_en}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"

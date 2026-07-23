@@ -9,8 +9,20 @@ import InfiniteCarousel from '@/components/InfiniteCarousel';
 import CustomerReviews from '@/components/CustomerReviews';
 import { getCategories, getProducts } from '@/lib/api';
 import { Product, Category } from '@/types';
-import { ChevronLeft, ChevronRight, ShoppingBag, Shield, Truck, Clock, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pill, Apple, Sparkles, Paintbrush, Baby, Thermometer, ShoppingBag, Shield, Truck, Clock, Award } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+
+function categoryIcon(slug: string) {
+  const map: Record<string, typeof Pill> = {
+    medicines: Pill,
+    wellness: Apple,
+    'personal-care': Sparkles,
+    cosmetics: Paintbrush,
+    'baby-care': Baby,
+    'medical-devices': Thermometer,
+  };
+  return map[slug] || ShoppingBag;
+}
 
 export default function HomePage() {
   const t = useTranslations();
@@ -177,21 +189,24 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-5">
-            {categories.map((cat) => (
+            {categories.map((cat) => {
+              const Icon = categoryIcon(cat.slug);
+              return (
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.id}`}
                 className="block group bg-white hover:bg-teal-50 rounded-2xl p-4 md:p-6 text-center border border-slate-100 hover:border-teal-200 hover:shadow-lg transition-all duration-300"
               >
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-teal-100 transition-all duration-300 text-teal-600">
-                  <ShoppingBag size={24} className="md:hidden" />
-                  <ShoppingBag size={28} className="hidden md:block" />
+                  <Icon size={24} className="md:hidden" />
+                  <Icon size={28} className="hidden md:block" />
                 </div>
                 <h3 className="font-bold text-slate-800 text-xs md:text-base font-cairo line-clamp-2">
                   {isRtl ? cat.name_ar : cat.name_en}
                 </h3>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

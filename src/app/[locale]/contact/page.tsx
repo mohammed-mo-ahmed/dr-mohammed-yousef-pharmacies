@@ -3,7 +3,14 @@
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { supabase } from '@/lib/supabase';
-import { Phone, Clock, MapPin, Send, MessageSquareCheck } from 'lucide-react';
+import { Phone, Clock, MapPin, Send, MessageSquareCheck, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+
+interface FaqItem {
+  qAr: string;
+  qEn: string;
+  aAr: string;
+  aEn: string;
+}
 
 export default function ContactPage() {
   const t = useTranslations('contact');
@@ -14,6 +21,15 @@ export default function ContactPage() {
   const [email, setEmail] = useState('');
   const [msg, setMsg] = useState('');
   const [success, setSuccess] = useState(false);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  const faqs: FaqItem[] = [
+    { qAr: t('faq1Q'), qEn: t('faq1Q'), aAr: t('faq1A'), aEn: t('faq1A') },
+    { qAr: t('faq2Q'), qEn: t('faq2Q'), aAr: t('faq2A'), aEn: t('faq2A') },
+    { qAr: t('faq3Q'), qEn: t('faq3Q'), aAr: t('faq3A'), aEn: t('faq3A') },
+    { qAr: t('faq4Q'), qEn: t('faq4Q'), aAr: t('faq4A'), aEn: t('faq4A') },
+    { qAr: t('faq5Q'), qEn: t('faq5Q'), aAr: t('faq5A'), aEn: t('faq5A') },
+  ];
 
   const handleSendMsg = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,7 +218,7 @@ export default function ContactPage() {
       </div>
 
       {/* 3. Google Map section */}
-      <section className="bg-white border border-slate-100 rounded-3xl p-4 shadow-sm overflow-hidden">
+      <section className="bg-white border border-slate-100 rounded-3xl p-4 shadow-sm overflow-hidden mb-16">
         <h3 className="font-extrabold text-slate-900 text-base mb-4 px-2">
           {t('location')}
         </h3>
@@ -216,6 +232,55 @@ export default function ContactPage() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
+        </div>
+      </section>
+
+      {/* 4. FAQ Accordion */}
+      <section className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <span className="text-teal-600 text-xs md:text-sm font-bold tracking-wider uppercase mb-2 block">
+            {isRtl ? 'الأسئلة الشائعة' : 'FAQ'}
+          </span>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-cairo">
+            {t('faqTitle')}
+          </h2>
+          <div className="w-16 h-1 bg-teal-600 mx-auto mt-4 rounded-full" />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {faqs.map((faq, index) => {
+            const isOpen = activeFaq === index;
+            return (
+              <div
+                key={index}
+                className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md"
+              >
+                <button
+                  onClick={() => setActiveFaq(isOpen ? null : index)}
+                  className={`w-full p-5 md:p-6 flex items-center justify-between gap-4 font-bold text-slate-800 text-sm md:text-base cursor-pointer focus:outline-none transition-colors ${
+                    isOpen ? 'text-teal-600 bg-teal-50/10' : 'hover:bg-slate-50/50'
+                  } ${isRtl ? 'text-right' : 'text-left'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <HelpCircle size={18} className="text-teal-600 flex-shrink-0" />
+                    <span>{isRtl ? faq.qAr : faq.qEn}</span>
+                  </div>
+                  {isOpen ? (
+                    <ChevronUp size={18} className="text-teal-600 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown size={18} className="text-slate-400 flex-shrink-0" />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className={`p-5 md:p-6 border-t border-slate-50 bg-slate-50/30 text-xs md:text-sm text-slate-600 leading-relaxed font-cairo ${
+                    isRtl ? 'text-right' : 'text-left'
+                  }`}>
+                    {isRtl ? faq.aAr : faq.aEn}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 

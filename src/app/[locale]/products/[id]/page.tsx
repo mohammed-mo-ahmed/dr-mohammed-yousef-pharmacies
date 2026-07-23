@@ -11,6 +11,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Plus, Minus, ShoppingBag, ChevronLeft, ChevronRight, CornerDownLeft, ShieldCheck, Truck, Heart } from 'lucide-react';
 import Image from 'next/image';
+import { getProductImage } from '@/lib/productImages';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -115,7 +116,7 @@ export default function ProductDetailPage() {
         {/* Left Side: Product Image */}
         <div className="w-full aspect-square relative bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 flex items-center justify-center">
           <Image
-            src={imgErr || !product.image_url ? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60' : product.image_url}
+            src={imgErr ? getProductImage(null, product.form) : getProductImage(product.image_url, product.form)}
             alt={isRtl ? product.name_ar : product.name_en}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"

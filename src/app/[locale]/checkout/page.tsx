@@ -6,7 +6,8 @@ import { useRouter } from '@/i18n/routing';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { createOrder, getProfile } from '@/lib/api';
-import { Truck, Store, CreditCard, ShoppingBag, CheckCircle, AlertTriangle, LogIn } from 'lucide-react';
+import { Truck, Store, CreditCard, ShoppingBag, CheckCircle, AlertTriangle, Banknote, Landmark } from 'lucide-react';
+
 export default function CheckoutPage() {
   const t = useTranslations();
   const locale = useLocale();
@@ -36,22 +37,28 @@ export default function CheckoutPage() {
     );
   }
 
-  // Form states
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<'home_delivery' | 'pharmacy_pickup'>('home_delivery');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod' | 'pickup'>('online');
 
-  // Request statuses
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  
-  // Validation errors
+  const [paymentInfo, setPaymentInfo] = useState('');
+
   const [valErrors, setValErrors] = useState<Record<string, string>>({});
 
-  // Pre-fill form from profile
+  useEffect(() => {
+    if (deliveryMethod === 'home_delivery') {
+      if (paymentMethod === 'pickup') setPaymentMethod('online');
+    } else {
+      if (paymentMethod === 'cod') setPaymentMethod('pickup');
+    }
+  }, [deliveryMethod, paymentMethod]);
+
   useEffect(() => {
     if (user) {
       getProfile(user.id).then((profile) => {
@@ -89,6 +96,7 @@ export default function CheckoutPage() {
         customer_address: deliveryMethod === 'home_delivery' ? address : 'Pharmacy Pickup',
         notes: notes,
         delivery_method: deliveryMethod,
+        payment_method: paymentMethod,
         total: cartTotal,
         user_id: user?.id,
       };
@@ -104,6 +112,13 @@ export default function CheckoutPage() {
       if (newOrder) {
         setOrderSuccess(true);
         clearCart();
+        if (paymentMethod === 'online') {
+          setPaymentInfo(isRtl
+            ? 'سيتم مراجعة طلبك والتأكد من توفر المنتجات. بعدها سنرسل لك بيانات الدفع عبر واتساب.'
+            : 'We will review your order and check product availability. Then we will send payment details via WhatsApp.');
+        } else {
+          setPaymentInfo('');
+        }
       } else {
         setErrorMsg(isRtl ? 'حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.' : 'Error submitting your order. Please try again.');
       }
@@ -125,10 +140,10 @@ export default function CheckoutPage() {
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-4">
             {t('checkout.success')}
           </h1>
-          <p className="text-slate-500 text-sm md:text-base mb-8 leading-relaxed">
-            {isRtl
-              ? 'شكراً لتسوقك معنا! تم إرسال طلبك بنجاح، وسيتواصل معك الصيدلي المسؤول لتأكيد مواعيد التوصيل أو الاستلام.'
-              : 'Thank you for shopping with us! Your order has been placed successfully. Our pharmacist will contact you shortly to confirm details.'}
+          <p className="text-slate-500 text-sm md:text-base mb-4 leading-relaxed">
+            {paymentInfo || (isRtl
+              ? 'شكراً لتسوقك معنا! تم إرسال طلبك بنجاح.'
+              : 'Thank you for shopping with us! Your order has been placed successfully.')}
           </p>
           <button
             onClick={() => router.push('/products')}
@@ -144,7 +159,6 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-cairo">
       
-      {/* Title */}
       <div className={`mb-8 ${isRtl ? 'text-right' : 'text-left'}`}>
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
           {t('checkout.title')}
@@ -152,7 +166,6 @@ export default function CheckoutPage() {
       </div>
 
       {cart.length === 0 ? (
-        /* Empty Checkout guard */
         <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center shadow-sm">
           <h2 className="text-lg font-bold text-slate-800 mb-4">
             {isRtl ? 'لا توجد منتجات لإتمام الشراء!' : 'No products to checkout!'}
@@ -165,20 +178,17 @@ export default function CheckoutPage() {
           </button>
         </div>
       ) : (
-        /* Checkout Grid */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
-          {/* Checkout Form (Left 2 cols) */}
           <form onSubmit={handleSubmitOrder} className="lg:col-span-2 flex flex-col gap-6">
             
-            {/* Delivery Methods Options */}
+            {/* Delivery Method */}
             <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-slate-800 text-base mb-4">
                 {t('checkout.deliveryMethod')}
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Home Delivery Card */}
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('home_delivery')}
@@ -198,12 +208,11 @@ export default function CheckoutPage() {
                       {t('checkout.homeDelivery')}
                     </h4>
                     <p className="text-xs text-slate-400 mt-1">
-                      {isRtl ? 'توصيل لباب المنزل خلال ساعات' : 'Express home delivery'}
+                      {isRtl ? 'توصيل لباب المنزل' : 'Home delivery'}
                     </p>
                   </div>
                 </button>
 
-                {/* Pharmacy Pickup Card */}
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('pharmacy_pickup')}
@@ -223,20 +232,107 @@ export default function CheckoutPage() {
                       {t('checkout.pharmacyPickup')}
                     </h4>
                     <p className="text-xs text-slate-400 mt-1">
-                      {isRtl ? 'استلام فوري من فرع الصيدلية' : 'Instant pickup at the branch'}
+                      {isRtl ? 'استلام من فرع الصيدلية' : 'Pickup at pharmacy branch'}
                     </p>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Customer Details Form */}
+            {/* Payment Method */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-bold text-slate-800 text-base mb-4">
+                {t('checkout.paymentMethod')}
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Pay Online */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('online')}
+                  className={`cursor-pointer border-2 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all text-center ${
+                    paymentMethod === 'online'
+                      ? 'border-teal-500 bg-teal-50/30'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    paymentMethod === 'online' ? 'bg-teal-600 text-white' : 'bg-slate-50 text-slate-400'
+                  }`}>
+                    <Landmark size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-xs">
+                      {t('checkout.payOnline')}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                      {t('checkout.payOnlineDesc')}
+                    </p>
+                  </div>
+                </button>
+
+                {/* COD — only for home delivery */}
+                {deliveryMethod === 'home_delivery' && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('cod')}
+                    className={`cursor-pointer border-2 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all text-center ${
+                      paymentMethod === 'cod'
+                        ? 'border-teal-500 bg-teal-50/30'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      paymentMethod === 'cod' ? 'bg-teal-600 text-white' : 'bg-slate-50 text-slate-400'
+                    }`}>
+                      <Banknote size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-xs">
+                        {t('checkout.payCOD')}
+                      </h4>
+                      <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                        {t('checkout.payCODDesc')}
+                      </p>
+                    </div>
+                  </button>
+                )}
+
+                {/* Pay at Pickup — for pharmacy pickup */}
+                {deliveryMethod === 'pharmacy_pickup' && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('pickup')}
+                    className={`cursor-pointer border-2 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all text-center ${
+                      paymentMethod === 'pickup'
+                        ? 'border-teal-500 bg-teal-50/30'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      paymentMethod === 'pickup' ? 'bg-teal-600 text-white' : 'bg-slate-50 text-slate-400'
+                    }`}>
+                      <Banknote size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-xs">
+                        {t('checkout.payPickup')}
+                      </h4>
+                      <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                        {t('checkout.payPickupDesc')}
+                      </p>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Customer Details */}
             <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
               <h3 className="font-bold text-slate-800 text-base mb-2">
                 {isRtl ? 'معلومات المستلم' : 'Recipient Information'}
               </h3>
 
-              {/* Full Name */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="checkout-name" className="text-xs font-semibold text-slate-500">{t('checkout.fullName')}</label>
                 <input
@@ -252,7 +348,6 @@ export default function CheckoutPage() {
                 {valErrors.name && <span className="text-xs text-rose-500 font-semibold">{valErrors.name}</span>}
               </div>
 
-              {/* Phone Number */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="checkout-phone" className="text-xs font-semibold text-slate-500">{t('checkout.phone')}</label>
                 <input
@@ -267,7 +362,6 @@ export default function CheckoutPage() {
                 {valErrors.phone && <span className="text-xs text-rose-500 font-semibold">{valErrors.phone}</span>}
               </div>
 
-              {/* Address (conditional on Home Delivery) */}
               {deliveryMethod === 'home_delivery' && (
                 <div className="flex flex-col gap-1.5 animate-fadeIn">
                   <label htmlFor="checkout-address" className="text-xs font-semibold text-slate-500">{t('checkout.address')}</label>
@@ -285,7 +379,6 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* Additional Notes */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="checkout-notes" className="text-xs font-semibold text-slate-500">{t('checkout.notes')}</label>
                 <textarea
@@ -297,10 +390,8 @@ export default function CheckoutPage() {
                   placeholder={isRtl ? 'مثال: جرس الباب معطل، أو تفاصيل مبنى معين' : 'E.g. door bell is broken, or building features'}
                 />
               </div>
-
             </div>
 
-            {/* Error Banner */}
             {errorMsg && (
               <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-rose-800 text-sm">
                 <AlertTriangle size={18} className="flex-shrink-0" />
@@ -308,7 +399,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -326,14 +416,13 @@ export default function CheckoutPage() {
 
           </form>
 
-          {/* Cart Summary Panel (Right 1 col) */}
+          {/* Cart Summary */}
           <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col gap-5">
             <h3 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-3 flex items-center gap-2">
               <ShoppingBag size={18} className="text-teal-600" />
               <span>{isRtl ? 'ملخص العناصر' : 'Items Summary'}</span>
             </h3>
 
-            {/* Items list */}
             <div className="flex flex-col gap-3 max-h-64 overflow-y-auto pr-1">
               {cart.map((item) => (
                 <div key={item.product.id} className="flex justify-between items-center text-xs gap-3">
@@ -352,7 +441,6 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            {/* Totals */}
             <div className="border-t border-slate-100 pt-4 flex flex-col gap-3">
               <div className="flex justify-between text-xs text-slate-500">
                 <span>{isRtl ? 'سعر المنتجات' : 'Products Total'}</span>
@@ -375,12 +463,9 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }

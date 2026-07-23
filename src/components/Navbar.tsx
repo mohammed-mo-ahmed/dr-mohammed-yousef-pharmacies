@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { supabase } from '@/lib/supabase';
 import { ShoppingCart, Menu, X, Globe, LogIn, Heart, User, ChevronDown, LogOut, Package } from 'lucide-react';
 import Image from 'next/image';
@@ -16,6 +17,7 @@ export default function Navbar() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -28,7 +30,7 @@ export default function Navbar() {
     { href: '/offers', label: t('offers') },
     { href: '/about', label: t('about') },
     { href: '/contact', label: t('contact') },
-    { href: '/faq', label: t('faq') },
+    { href: '/blog', label: t('blog') },
   ];
 
   const switchLocale = () => {
@@ -151,6 +153,20 @@ export default function Navbar() {
             )}
           </Link>
 
+          {/* Wishlist Icon - always visible */}
+          <Link
+            href="/wishlist"
+            aria-label={t('wishlist')}
+            className="relative p-2 text-slate-700 hover:text-rose-500 transition-colors bg-slate-50 hover:bg-rose-50 rounded-xl border border-slate-100"
+          >
+            <Heart size={20} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1.5 -end-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+
           {/* Language Toggle */}
           <button
             onClick={switchLocale}
@@ -223,6 +239,20 @@ export default function Navbar() {
               )}
             </div>
           )}
+
+          {/* Wishlist (mobile) — always visible */}
+          <Link
+            href="/wishlist"
+            aria-label={t('wishlist')}
+            className="relative p-2 text-slate-700 hover:text-rose-500 bg-slate-50 rounded-xl"
+          >
+            <Heart size={20} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1.5 -end-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
 
           {/* Cart (mobile) — always visible */}
           <Link

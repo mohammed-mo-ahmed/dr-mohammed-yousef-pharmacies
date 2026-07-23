@@ -20,7 +20,7 @@ import {
   deleteOrder,
   seedDatabase,
 } from '@/lib/api';
-import { Product, Category, Order, Customer } from '@/types';
+import { Product, Category, Order, Customer, OrderStatus } from '@/types';
 import { RefreshCw, ShieldAlert } from 'lucide-react';
 
 import Sidebar from '@/components/admin/Sidebar';
@@ -306,11 +306,23 @@ export default function AdminDashboardPage() {
   // ==========================================
   // ORDER ACTIONS
   // ==========================================
-  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
-    const updated = await updateOrderStatus(orderId, status);
-    if (updated) {
+  const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
+    const result = await updateOrderStatus(orderId, status, isRtl);
+    if (result.order) {
       loadAllData();
+      // Open WhatsApp notification in new tab if URL generated
+      if (result.whatsappUrl) {
+        window.open(result.whatsappUrl, '_blank', 'noopener');
+      }
     }
+  };
+
+  const handleConfirmPayment = async (orderId: string) => {
+    await handleUpdateOrderStatus(orderId, 'paid');
+  };
+
+  const handleApproveOrder = async (orderId: string) => {
+    await handleUpdateOrderStatus(orderId, 'approved');
   };
 
   const handleDeleteOrder = async (id: string) => {
@@ -473,6 +485,8 @@ export default function AdminDashboardPage() {
                 common={common}
                 handleUpdateOrderStatus={handleUpdateOrderStatus}
                 handleDeleteOrder={handleDeleteOrder}
+                handleConfirmPayment={handleConfirmPayment}
+                handleApproveOrder={handleApproveOrder}
               />
             )}
 
