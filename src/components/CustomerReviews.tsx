@@ -108,7 +108,7 @@ export default function CustomerReviews() {
         </div>
       </div>
 
-      <InfiniteCarousel isRtl={isRtl} speed={14}>
+      <InfiniteCarousel isRtl={isRtl} speed={0.22}>
         {reviews.map((review, i) => (
           <ReviewCard key={i} review={review} isRtl={isRtl} />
         ))}

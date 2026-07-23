@@ -198,3 +198,34 @@ body {
 .review-card-glow:hover {
   box-shadow: 0 4px 24px rgba(16, 185, 129, 0.08);
 }
+
+/* ===== Infinite Carousel ===== */
+.infinite-carousel {
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%);
+}
+
+.infinite-carousel:active {
+  cursor: grabbing;
+}
+
+[dir="rtl"] .infinite-carousel {
+  mask-image: linear-gradient(to left, transparent 0%, #000 5%, #000 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, transparent 0%, #000 5%, #000 95%, transparent 100%);
+}
+
+.infinite-carousel-track {
+  display: flex;
+  gap: 20px;
+  will-change: transform;
+  width: max-content;
+}
+
+.infinite-carousel-item {
+  flex-shrink: 0;
+  height: 100%;
+}

@@ -162,7 +162,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <InfiniteCarousel isRtl={isRtl} speed={18}>
+          <InfiniteCarousel isRtl={isRtl} speed={0.3}>
             {saleProducts.map((prod) => {
               const discount = prod.offer_price && prod.offer_price < prod.price
                 ? Math.round(((prod.price - prod.offer_price) / prod.price) * 100)
