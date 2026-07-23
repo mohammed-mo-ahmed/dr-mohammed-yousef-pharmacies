@@ -54,7 +54,7 @@ export default function InfiniteCarousel({ children, isRtl, speed = 20 }: Infini
 
       if (!draggingRef.current) {
         const step = currentSpeedRef.current * 0.016;
-        xRef.current -= step;
+        xRef.current += isRtl ? -step : step;
       }
 
       if (xRef.current <= -twRef.current * 2) {
